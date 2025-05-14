@@ -1,0 +1,5 @@
+app/utils/AI_Model/saved_kobigbird_kopolitic/ 
+.env 
+__pycache__/ 
+*.pyc 
+venv/ 
