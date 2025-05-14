@@ -46,7 +46,10 @@ def parse_article(html: str) -> Dict[str, Optional[str]]:
     # 본문 파싱 전 img_desc 제거
     for em in soup.select("em.img_desc"):
         em.decompose()  # DOM에서 해당 요소 완전히 제거
-
+    
+    
+    image_url = soup.select_one("img#img1").get("data-src")
+    
     content_tag = soup.select_one("article#dic_area")
     content = content_tag.get_text(separator="\n", strip=True) if content_tag else ""
 
@@ -69,8 +72,10 @@ async def fetch_article_body(session: aiohttp.ClientSession, link: str) -> Optio
         async with session.get(link) as response:
             if response.status == 200:
                 html = await response.text()
+                print(link)
                 parsed_data = parse_article(html)
                 parsed_data["link"] = link
+                print('####')
                 return parsed_data
             elif response.status == 404:
                 logging.warning(f"404 Not Found: {link}")
