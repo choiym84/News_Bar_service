@@ -7,6 +7,9 @@ from app.utils.content_crawler import crawl_articles
 from app.db.insertData import store_hot_topics_and_return_list, save_article
 from app.utils.AI_Model.AI_main import ai_model2
 from app.db.findData import find_article_id_by_url
+from app.utils.AWS_img import download_image_to_local,upload_image_to_s3_from_url
+
+
 # from app.utils.AI_Model.hot_topic import generate_responses
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -88,6 +91,7 @@ def preprocess_keywords(keywords, stopwords):
             processed.append(processed_keyword)
     return processed
 
+
 #언론사에 의한 정치성향 필터링.
 def label_media_bias(data):
     conservative = {"조선일보", "중앙일보", "동아일보", "문화일보", "국민일보", "tv조선", "채널A"}
@@ -122,9 +126,10 @@ def label_media_bias(data):
     return new_data,delete_article,con,cen,pro
 
 
+
 def start_pipeline():
     logger.info("[Hot Topic Pipeline] 수집 시작 ✅")
-
+    asdf = 0
     # 1. 헤드라인 크롤링
     headlines = get_naver_headlines()
     s = []
@@ -178,6 +183,9 @@ def start_pipeline():
                 a = save_article(i)
 
             new_data.append({'article_id':a,'keyword_id':i['keyword'],'stance':i['stance']})
+
+        
+
 
 
         print(len(new_data))

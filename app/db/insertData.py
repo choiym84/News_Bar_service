@@ -4,7 +4,7 @@ from datetime import datetime
 from collections import defaultdict
 from datetime import datetime, timezone
 from typing import List, Dict
-
+from app.utils.AWS_img import upload_image_to_s3_from_url
 #핫토픽 저장하는 함수
 def store_hot_topics_and_return_list(keywords: list):
     """
@@ -88,13 +88,17 @@ def save_article(article_data: dict) -> int | None:
     # 저장용 세션 분리
     db = SessionLocal()
     try:
+
+        thumbnail = upload_image_to_s3_from_url(img_url=article_data['img_url'],s3_key=article_data['link'])
+
         new_article = Article(
             title=article_data["title"],
             content=article_data["content"],
             url=article_data["link"],
             reporter=article_data["reporter"],
             publish_date=datetime.strptime(article_data["pub_date"], "%a, %d %b %Y %H:%M:%S %z"),
-            publisher=article_data["publisher"]
+            publisher=article_data["publisher"],
+            img_addr=thumbnail
         )
         db.add(new_article)
         db.commit()

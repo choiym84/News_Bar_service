@@ -63,7 +63,8 @@ def parse_article(html: str) -> Dict[str, Optional[str]]:
         "title" : title,
         "content": content,
         "publisher": publisher,
-        "reporter": reporter
+        "reporter": reporter,
+        "img_url": image_url
     }
 
 # 개별 기사 크롤링 (비동기)
@@ -72,10 +73,10 @@ async def fetch_article_body(session: aiohttp.ClientSession, link: str) -> Optio
         async with session.get(link) as response:
             if response.status == 200:
                 html = await response.text()
-                print(link)
+                
                 parsed_data = parse_article(html)
                 parsed_data["link"] = link
-                print('####')
+                
                 return parsed_data
             elif response.status == 404:
                 logging.warning(f"404 Not Found: {link}")

@@ -24,6 +24,7 @@ class Article(Base):
     reporter = Column(String(45))
     publish_date = Column(TIMESTAMP)
     publisher = Column(String(255))
+    img_addr = Column(String(255))
 
     # 관계
     article_summaries = relationship("ArticleSummary", back_populates="article")
