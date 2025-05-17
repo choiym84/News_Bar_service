@@ -21,7 +21,7 @@ def request_first_model(titles):
     1차 AI 모델 임포트.
     '''
     # keywords = generate_responses(titles)
-    keywords =  ["진보주의"]#,"이재명","국민의힘","대선투표","7인회","김문수"]#["김문수·국힘 지도부 발언"]#, "대법원장 탄핵 논란", "이재명 사법리스크", "김문수·국힘 지도부 발언", "김정은 장갑무력 강조", "가짜뉴스·내란세력 규정"]
+    keywords =  ["국민의힘"]#,"이재명","진보주의","대선투표","7인회","김문수"]#["김문수·국힘 지도부 발언"]#, "대법원장 탄핵 논란", "이재명 사법리스크", "김문수·국힘 지도부 발언", "김정은 장갑무력 강조", "가짜뉴스·내란세력 규정"]
 
     return keywords #일단 걍 넘기는거지.
 
@@ -184,8 +184,7 @@ def start_pipeline():
 
             new_data.append({'article_id':a,'keyword_id':i['keyword'],'stance':i['stance']})
 
-        
-
+        logger.info("기사 저장 완료")
 
 
         print(len(new_data))
@@ -193,6 +192,7 @@ def start_pipeline():
         
         data = ai_model2(new_data) #성향에 따라 3개 3개 3개의 기사만 넘어올거임.
         # print(len(data)) #일치 하는 것만 넘어옴. 아래 주석이 데이터 형태.
+
         
         '''
         {'title', 'content', 'publisher', 'reporter', 'link', 'keyword': {'keyword': '김문수국힘 지도부 발언', 'id': 105}, 'pub_date', 'stance'}

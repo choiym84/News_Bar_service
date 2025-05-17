@@ -1,7 +1,7 @@
 
 import torch
 from app.db.findData import check_summary_exists,find_article_id_by_url,find_article_by_id
-from app.db.insertData import summary_insert
+from app.db.insertData import summary_insert, bridge_conn
 from app.utils.AI_Model.politic_predict import load_model_and_tokenizer_simple, final_predict_with_scoring_simple,simple_political_match
 from app.utils.AI_Model.summary import summarize_with_chatgpt
 from app.utils.AI_Model.comparison_analysis import compare_political_orientations_gpt_json
@@ -20,6 +20,9 @@ model, tokenizer, device = load_model_and_tokenizer_simple()
 
 def ai_model2(articles_id):
     new_articles = []
+    con = []
+    cen = []
+    pro = []
 
     for id in articles_id:
         
@@ -37,22 +40,45 @@ def ai_model2(articles_id):
             device=device
         )
 
-        
-
         # 일치한 경우 요약 후 저장
         if result["match_result"]:
+
+            if len(cen) == 3 and len(pro) == 3 and len(con) == 3: #모든 것이 꽉차면 멈춤춤
+                break
+
+            elif result["predicted_label"] == "중립" and len(cen) < 3: #중립 3개 이하
+                cen.append(id)
+
+            elif result["predicted_label"] == "보수" and len(con) < 3: #보수 3개 이하
+                con.append(id)
+
+            elif result["predicted_label"] == "진보" and len(pro) < 3: #진보 3개 이하
+                pro.append(id)
+
+            else:
+                continue
+
             
-            if  check_summary_exists(id['article_id']) == False: #요약이 없거나, 기사 조차 없을 때는 요약 생성성
+            if  check_summary_exists(id['article_id']) == False: #요약이 없거나, 기사 조차 없을 때는 요약 생성
                 summarized = summarize_with_chatgpt(text)
                 # summarized = ""
-                # article_id = article_insert() #기사 저장장
+                # article_id = article_insert() #기사 저장
                 summary_insert(summarized,id['article_id'],id['keyword_id']) #요약 저장
 
             else:
-                pass 
-                
-            print(new_articles)
-            new_articles.append(article)
+                pass
+
+
+            bridge_conn(id['article_id'],id['keyword_id'],id['stance'])
+            print("ㅋㅋ")
+
+        
+
+    
+        ##넘기기 전에 성향별 요약 한번 하고 넘어가도 괜찮을 것 같다.
+
+        ##con,cen,pro 어떻게 해야 할까?
+
 
         
 

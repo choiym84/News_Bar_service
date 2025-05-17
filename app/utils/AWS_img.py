@@ -35,7 +35,7 @@ def upload_image_to_s3_from_url(img_url: str, s3_key: str) -> str:
 
     except Exception as e:
         print(f"❌ 이미지 업로드 실패: {e}")
-        url = f"https://{bucket_name}.s3.amazonaws.com/article_img/NoExistThurbnail.jpg"
+        url = f"https://{bucket_name}.s3.amazonaws.com/article_img/NoExistThumbnail.jpg"
         return url
 
 

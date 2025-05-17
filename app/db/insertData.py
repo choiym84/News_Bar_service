@@ -110,3 +110,20 @@ def save_article(article_data: dict) -> int | None:
         return None
     finally:
         db.close()
+
+
+def bridge_conn(article_id,hot_topics_id,stance):
+    db = SessionLocal()
+
+    try:
+        bridge_entry = Bridge(hot_topics_id=hot_topics_id, articles_id=article_id,stance=stance)
+        db.add(bridge_entry)
+        db.commit()
+        db.refresh(bridge_entry)
+        return bridge_entry
+    except Exception as e:
+        db.rollback()
+        print(f"Bridge 삽입 오류: {e}")
+        return None
+    finally:
+        db.close()

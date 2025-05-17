@@ -1,42 +1,37 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
-from app.db.models import HotTopic, Article, ArticleSummary, Publisher
+from app.db.models import HotTopic, Article, ArticleSummary, Publisher,Bridge
+from app.db.schema import ArticleRead,ArticleSummaryRead
+from typing import List
+from app.db.findData import find_all_article,hot_topic_pipeline,find_article_by_hottopicId,find_article_by_id
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from fastapi import Request
+
+templates = Jinja2Templates(directory="app/front")
 
 router = APIRouter()
+@router.get("/articles", response_model=List[ArticleRead])
+def read_articles():
+    return find_all_article()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
-@router.get("/summary")
-def get_active_summaries(db: Session = Depends(get_db)):
-    # 1. 활성화된 키워드만 가져오기
-    hot_topics = db.query(HotTopic).filter(HotTopic.activate == 1).all()
-    result = []
+@router.get("/hottopic",response_model=List[ArticleSummaryRead])
+def hottopic():
+    
+    #id 가져옴.
+    return hot_topic_pipeline()
 
-    for topic in hot_topics:
-        # 2. 해당 키워드에 연결된 기사 ID 가져오기
-        articles = db.query(Article).filter(Article.hot_topic_id == topic.id).all()
-        summaries = []
-
-        for article in articles:
-            summary = db.query(ArticleSummary).filter_by(article_id=article.id).first()
-            publisher = db.query(Publisher).filter_by(id=article.publisher_id).first()
-
-            if summary and publisher:
-                summaries.append({
-                    "publisher": publisher.name,
-                    "summary": summary.summary_json
-                })
-
-        result.append({
-            "keyword": topic.name,
-            "id": topic.id,
-            "summaries": summaries
+@router.get("/article/{article_id}", response_class=HTMLResponse)
+def get_article_content(request: Request,article_id: int):
+    article = find_article_by_id(article_id)
+    return templates.TemplateResponse("article_view.html", {
+            "request": request,
+            "article": article
         })
+    
+        
 
-    return result
+
+    

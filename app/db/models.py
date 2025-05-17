@@ -50,6 +50,7 @@ class Bridge(Base):
     id = Column(Integer, primary_key=True)
     hot_topics_id = Column(Integer, ForeignKey('hot_topics.id'))
     articles_id = Column(Integer, ForeignKey('articles.id'))
+    stance = Column(String(255))
 
     hot_topic = relationship("HotTopic", back_populates="bridges")
     article = relationship("Article", back_populates="bridges")
@@ -59,7 +60,7 @@ class ArticleSummary(Base):
     __tablename__ = 'article_summary'
 
     id = Column(Integer, primary_key=True)
-    summary_text = Column(JSON)
+    summary_text = Column(Text)
     create_date = Column(TIMESTAMP)
     hot_topics_id = Column(Integer, ForeignKey('hot_topics.id'))
     articles_id = Column(Integer, ForeignKey('articles.id'))
