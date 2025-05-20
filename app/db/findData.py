@@ -41,7 +41,7 @@ def find_all_article()->dict:
                 "content": article.content,
                 "publisher": article.publisher,
                 "reporter":article.reporter,
-                "publish_date": article.publish_date.isoformat(),
+                "publish_date": article.publish_date.strftime('%Y-%m-%d'),
             }
             for article in articles
         ]
@@ -77,54 +77,54 @@ def find_article_by_hottopicId(id):
 
 
 def hot_topic_pipeline():
-
     db = SessionLocal()
     try:
-    # 1. 활성화된 hot_topic들 조회
-        active_topic_ids = [t.id for t in db.query(HotTopic).filter(HotTopic.activate == True).all()]
+        # 1. 활성화된 핫토픽 조회
+        active_topics = db.query(HotTopic).filter(HotTopic.activate == 1).all()
+        hot_topics = [{"id": t.id, "name": t.name} for t in active_topics]
 
-        # 2. bridge 테이블에서 hot_topic_id로 필터
-        bridges = db.query(Bridge)\
-            .options(joinedload(Bridge.article))\
-            .filter(Bridge.hot_topics_id.in_(active_topic_ids)).all()
-
-        # 3. articles_id 리스트 추출
-        article_ids = [b.articles_id for b in bridges]
-
-        # 4. 요약 조회 (article과도 조인해서 가져옴)
-        summaries = db.query(ArticleSummary)\
-            .options(joinedload(ArticleSummary.article))\
-            .filter(ArticleSummary.articles_id.in_(article_ids)).all()
-
-        # 5. (hot_topic_id, stance) 기준으로 그룹핑
-        grouped = defaultdict(list)
-
-        # 요약마다 해당 Bridge 정보를 기반으로 그룹핑
-        bridge_lookup = {(b.articles_id, b.hot_topics_id): b.stance for b in bridges}
-
-        for summary in summaries:
-            key = (summary.articles_id, summary.hot_topics_id)
-            stance = bridge_lookup.get(key)
-            if stance is None:
-                continue
-            grouped[(summary.hot_topics_id, stance)].append({
-                "publisher": summary.article.publisher,
-                "summary": summary.summary_text
-            })
-
-        # 6. 최종 응답 포맷으로 정리
         result = []
-        for (hot_topic_id, stance), content in grouped.items():
+
+        for topic in hot_topics:
+            topic_id = topic["id"]
+            topic_name = topic["name"]
+
+            # 2. 해당 핫토픽 ID의 브릿지 가져오기
+            bridges = db.query(Bridge)\
+                .options(joinedload(Bridge.article))\
+                .filter(Bridge.hot_topics_id == topic_id).all()
+
+            # 3. article_id → stance 매핑
+            article_to_stance = {b.articles_id: b.stance for b in bridges}
+            article_ids = list(article_to_stance.keys())
+
+            # 4. 요약 가져오기
+            summaries = db.query(ArticleSummary)\
+                .options(joinedload(ArticleSummary.article))\
+                .filter(ArticleSummary.articles_id.in_(article_ids)).all()
+
+            # 5. 정치 성향별 그룹핑
+            grouped_by_stance = {"진보": [], "중립": [], "보수": []}
+
+            for summary in summaries:
+                stance = article_to_stance.get(summary.articles_id)
+                if stance not in grouped_by_stance:
+                    continue
+
+                grouped_by_stance[stance].append({
+                    "publisher": summary.article.publisher,
+                    "summary": summary.summary_text,
+                    "article_id": summary.article.id
+                })
+
+            # 6. 결과에 추가
             result.append({
-                "hot_topic_id": hot_topic_id,
-                "stance": stance,
-                "content": content
+                "id": topic_id,
+                "name": topic_name,
+                "groups": grouped_by_stance
             })
 
         return result
 
     finally:
         db.close()
-
-
-        

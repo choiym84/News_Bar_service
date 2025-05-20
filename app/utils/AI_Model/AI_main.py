@@ -70,7 +70,7 @@ def ai_model2(articles_id):
 
 
             bridge_conn(id['article_id'],id['keyword_id'],id['stance'])
-            print("ㅋㅋ")
+            
 
         
 

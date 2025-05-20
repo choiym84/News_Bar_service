@@ -1,0 +1,19 @@
+<!-- app/front/article_view.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ article.title }}</title>
+</head>
+<body>
+    <h1>{{ article.title }}</h1>
+    <p><strong>작성자:</strong> {{ article.reporter }} | <strong>발행:</strong> {{ article.publish_date.strftime('%Y-%m-%d') }}</p>
+    <p><strong>언론사:</strong> {{ article.publisher }}</p>
+    <hr>
+    <div>
+        {{ article.content }}
+    </div>
+    <br>
+    <a href="/articles">← 기사 목록으로</a>
+</body>
+</html>

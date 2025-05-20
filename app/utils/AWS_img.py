@@ -14,11 +14,11 @@ s3 = boto3.client(
     
 def upload_image_to_s3_from_url(img_url: str, s3_key: str) -> str:
 
-
+    bucket_name = os.getenv("S3_BUCKET_NAME")
     try:
         response = requests.get(img_url)
         response.raise_for_status()
-        bucket_name = os.getenv("S3_BUCKET_NAME")
+        
         # 파일 업로드 (파일 객체, 버킷, 키)
         
         filename = s3_key.split("/")[-1]
@@ -34,8 +34,9 @@ def upload_image_to_s3_from_url(img_url: str, s3_key: str) -> str:
         return s3_url
 
     except Exception as e:
-        print(f"❌ 이미지 업로드 실패: {e}")
+        
         url = f"https://{bucket_name}.s3.amazonaws.com/article_img/NoExistThumbnail.jpg"
+        print(f"이미지 업로드 실패: {e} 기본이미지로 설정 {url}")
         return url
 
 

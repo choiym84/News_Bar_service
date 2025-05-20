@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>핫토픽 분석</title>
+    <style>
+        .tag, .stance-button, .media-button {
+            display: inline-block;
+            margin: 5px;
+            padding: 6px 12px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .hidden { display: none; }
+        .highlight { background: #d0ebff; }
+        .summary-fixed-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 15px;
+            background: #fefefe;
+            min-height: 80px;
+        }
+    </style>
+</head>
+<body>
+    <h2>🔥 실시간 인기 키워드</h2>
+
+    <!-- 키워드 탭 -->
+    {% for topic in topics %}
+        <span class="tag" onclick="showStances('{{ topic.id }}')">#{{ topic.name }}</span>
+    {% endfor %}
+
+    <hr>
+
+    {% for topic in topics %}
+    <div id="stance_area_{{ topic.id }}" class="hidden">
+        <h3>#{{ topic.name }}</h3>
+
+        {% for stance in ['진보', '중립', '보수'] %}
+            <span class="stance-button" onclick="showMedia('{{ topic.id }}', '{{ stance }}')">{{ stance }}</span>
+        {% endfor %}
+
+        {% for stance in ['진보', '중립', '보수'] %}
+        <div id="media_area_{{ topic.id }}_{{ stance }}" class="hidden">
+            <h4>🧭 {{ stance }}</h4>
+
+            <!-- 언론사 버튼 -->
+            {% for item in topic.groups[stance] %}
+                <span class="media-button"
+                    onclick="showSummaryInBox('{{ topic.id }}', '{{ stance }}', `{{ item.summary|escape }}`, '{{ item.publisher }}')">
+                    {{ item.publisher }}
+                </span>
+            {% endfor %}
+
+            {% if not topic.groups[stance] %}
+                <div>데이터 없음</div>
+            {% endif %}
+
+            <!-- 요약 박스 (고정 위치) -->
+            <div id="summary_box_{{ topic.id }}_{{ stance }}" class="summary-fixed-box"></div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+    <script>
+        function hideAll(prefix) {
+            document.querySelectorAll(`[id^='${prefix}_']`).forEach(el => el.classList.add("hidden"));
+        }
+
+        function showStances(topicId) {
+            hideAll("stance_area");
+            hideAll("media_area");
+            document.querySelectorAll(".summary-fixed-box").forEach(e => e.innerHTML = "");
+            const el = document.getElementById(`stance_area_${topicId}`);
+            if (el) el.classList.remove("hidden");
+        }
+
+        function showMedia(topicId, stance) {
+            hideAll("media_area");
+            document.querySelectorAll(".summary-fixed-box").forEach(e => e.innerHTML = "");
+            const el = document.getElementById(`media_area_${topicId}_${stance}`);
+            if (el) el.classList.remove("hidden");
+        }
+
+        function showSummaryInBox(topicId, stance, summary, publisher) {
+            const box = document.getElementById(`summary_box_${topicId}_${stance}`);
+            if (box) {
+                box.innerHTML = `<strong>${publisher}</strong><br>${summary}`;
+            }
+        }
+    </script>
+</body>
+</html>

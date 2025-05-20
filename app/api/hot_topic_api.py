@@ -1,37 +1,18 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from app.db.database import SessionLocal
-from app.db.models import HotTopic, Article, ArticleSummary, Publisher,Bridge
-from app.db.schema import ArticleRead,ArticleSummaryRead
-from typing import List
-from app.db.findData import find_all_article,hot_topic_pipeline,find_article_by_hottopicId,find_article_by_id
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-from fastapi import Request
+# app/api/hot_topic_api.py
 
-templates = Jinja2Templates(directory="app/front")
+from fastapi import APIRouter, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from app.db.findData import hot_topic_pipeline
 
 router = APIRouter()
-@router.get("/articles", response_model=List[ArticleRead])
-def read_articles():
-    return find_all_article()
+templates = Jinja2Templates(directory="app/front")
 
-
-@router.get("/hottopic",response_model=List[ArticleSummaryRead])
-def hottopic():
-    
-    #id 가져옴.
-    return hot_topic_pipeline()
-
-@router.get("/article/{article_id}", response_class=HTMLResponse)
-def get_article_content(request: Request,article_id: int):
-    article = find_article_by_id(article_id)
-    return templates.TemplateResponse("article_view.html", {
-            "request": request,
-            "article": article
-        })
-    
-        
-
-
-    
+# 핫토픽 요약을 보여주는 웹 페이지
+@router.get("/hottopics", response_class=HTMLResponse)
+def get_hot_topics(request: Request):
+    topics = hot_topic_pipeline()
+    return templates.TemplateResponse("hot_topics.html", {
+        "request": request,
+        "topics": topics
+    })

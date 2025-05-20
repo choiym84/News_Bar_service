@@ -47,9 +47,14 @@ def parse_article(html: str) -> Dict[str, Optional[str]]:
     for em in soup.select("em.img_desc"):
         em.decompose()  # DOM에서 해당 요소 완전히 제거
     
-    
-    image_url = soup.select_one("img#img1").get("data-src")
-    
+    #동영상이 있는 뉴스를 걸러야 할 듯...
+
+    # soup.find("class.vod_player_wrap _VIDEO_AREA_WRAP")
+
+    image_url = None
+    if soup.select_one("img#img1"):
+        image_url = soup.select_one("img#img1").get("data-src")
+
     content_tag = soup.select_one("article#dic_area")
     content = content_tag.get_text(separator="\n", strip=True) if content_tag else ""
 

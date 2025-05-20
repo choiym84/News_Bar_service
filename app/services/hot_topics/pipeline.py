@@ -22,8 +22,11 @@ def request_first_model(titles):
     '''
     # keywords = generate_responses(titles)
     keywords =  ["국민의힘"]#,"이재명","진보주의","대선투표","7인회","김문수"]#["김문수·국힘 지도부 발언"]#, "대법원장 탄핵 논란", "이재명 사법리스크", "김문수·국힘 지도부 발언", "김정은 장갑무력 강조", "가짜뉴스·내란세력 규정"]
-
+    keywords = ['4년 연임제','5·18 정신 수록','국정 능력 vs 진짜 일꾼',"내란수괴",'윤 대통령 탈당','이재명 지지 선언']
     return keywords #일단 걍 넘기는거지.
+
+
+
 
 #2차 모델
 def request_second_model(filtered_articles):
@@ -203,5 +206,5 @@ def start_pipeline():
         # analyzed_results = request_second_model(filtered_articles)
 
     
-
+    print("[Hot Topic Pipeline] 수집 완료 ✅")
     logger.info("[Hot Topic Pipeline] 수집 완료 ✅")

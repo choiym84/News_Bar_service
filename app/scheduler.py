@@ -14,7 +14,7 @@ def start_scheduler():
     scheduler.add_job(
         start_pipeline,
         trigger=IntervalTrigger(hours=3),# ✅ 테스트할 땐 seconds=10 으로! hours=3
-        # next_run_time=datetime.now(),
+        next_run_time=datetime.now(),
         id="hot_topic_pipeline",
         replace_existing=True
     )

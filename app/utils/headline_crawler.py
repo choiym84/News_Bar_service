@@ -30,3 +30,6 @@ def get_naver_headlines(section_url: str = "https://news.naver.com/section/100",
         
     return headlines
 
+# for i in get_naver_headlines():
+#     print(i["title"])
+
