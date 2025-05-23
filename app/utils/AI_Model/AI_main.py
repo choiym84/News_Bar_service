@@ -1,10 +1,12 @@
 
 import torch
 from app.db.findData import check_summary_exists,find_article_id_by_url,find_article_by_id
-from app.db.insertData import summary_insert, bridge_conn
+from app.db.insertData import summary_insert, bridge_conn,save_analyze
 from app.utils.AI_Model.politic_predict import load_model_and_tokenizer_simple, final_predict_with_scoring_simple,simple_political_match
 from app.utils.AI_Model.summary import summarize_with_chatgpt
 from app.utils.AI_Model.comparison_analysis import compare_political_orientations_gpt_json
+from app.utils.findFake.all_pass_news_direct import evaluate_article
+
 
 ########################################
 # 0. 디바이스 및 모델, 토크나이저, 키워드 로드
@@ -29,6 +31,7 @@ def ai_model2(articles_id):
         article = find_article_by_id(id['article_id'])
         text = article.content
         media_orientation = id['stance']
+        link = article.url
 
         # 기사 성향 판단.
         result = simple_political_match(
@@ -40,6 +43,18 @@ def ai_model2(articles_id):
             device=device
         )
 
+        result['link'] = link
+        ######위험도 분석 
+
+        fake_score = evaluate_article(article.title, text, article.publish_date, article.publisher)
+        print(fake_score)
+        if fake_score >= 0.6:
+            print(result)
+            continue
+        #####
+
+
+        
         # 일치한 경우 요약 후 저장
         if result["match_result"]:
 
@@ -48,12 +63,15 @@ def ai_model2(articles_id):
 
             elif result["predicted_label"] == "중립" and len(cen) < 3: #중립 3개 이하
                 cen.append(id)
+                new_articles.append(id)
 
             elif result["predicted_label"] == "보수" and len(con) < 3: #보수 3개 이하
                 con.append(id)
+                new_articles.append(id)
 
             elif result["predicted_label"] == "진보" and len(pro) < 3: #진보 3개 이하
                 pro.append(id)
+                new_articles.append(id)
 
             else:
                 continue
@@ -71,16 +89,9 @@ def ai_model2(articles_id):
 
             bridge_conn(id['article_id'],id['keyword_id'],id['stance'])
             
-
-        
-
     
         ##넘기기 전에 성향별 요약 한번 하고 넘어가도 괜찮을 것 같다.
-
         ##con,cen,pro 어떻게 해야 할까?
-
-
-        
 
     print("\\n[2단계] 정치성향 매칭 및 요약 완료!")
     return new_articles
@@ -89,8 +100,24 @@ def ai_model2(articles_id):
 # 5. 비교 분석 (각 성향별 3개 이상일 경우만)
 ########################################
 
-def comparison_articles(conservative_texts,neutral_texts,progressive_texts):
-    if len(progressive_texts) >= 3 and len(neutral_texts) >= 3 and len(conservative_texts) >= 3:
+def ai_model3(ids,keyword_id):
+    if True:#len(progressive_texts) >= 3 and len(neutral_texts) >= 3 and len(conservative_texts) >= 3:
+        
+        progressive_texts = []
+        neutral_texts = []
+        conservative_texts = []
+
+        for id in ids:
+            data = find_article_by_id(id['article_id'])
+            text = data.content
+            if id['stance'] == '보수':
+                conservative_texts.append(text)
+            elif id['stance'] == '중립':
+                neutral_texts.append(text)
+            else:
+                conservative_texts.append(text)
+
+
         comparison_result = compare_political_orientations_gpt_json(
             progressive_texts[:3],
             neutral_texts[:3],
@@ -98,6 +125,7 @@ def comparison_articles(conservative_texts,neutral_texts,progressive_texts):
         )
         print("\\n[3단계] 최종 비교 분석 결과:")
         print(comparison_result)
+        save_analyze(comparison_result,keyword_id)
         return comparison_result
     else:
         print("\\n성향별 기사 3개 이상 확보되지 않아 비교 분석 생략됨.")

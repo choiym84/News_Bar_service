@@ -15,12 +15,21 @@
 
         .hidden { display: none; }
         .highlight { background: #d0ebff; }
+
         .summary-fixed-box {
             border: 1px solid #ccc;
             padding: 10px;
             margin-top: 15px;
             background: #fefefe;
             min-height: 80px;
+        }
+
+        .analysis-box {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f3f3f3;
+            border-left: 4px solid #aaa;
+            white-space: pre-line;
         }
     </style>
 </head>
@@ -49,7 +58,7 @@
             <!-- 언론사 버튼 -->
             {% for item in topic.groups[stance] %}
                 <span class="media-button"
-                    onclick="showSummaryInBox('{{ topic.id }}', '{{ stance }}', `{{ item.summary|escape }}`, '{{ item.publisher }}')">
+                      onclick="showSummaryInBox('{{ topic.id }}', '{{ stance }}', `{{ item.summary|escape }}`, '{{ item.publisher }}')">
                     {{ item.publisher }}
                 </span>
             {% endfor %}
@@ -62,6 +71,22 @@
             <div id="summary_box_{{ topic.id }}_{{ stance }}" class="summary-fixed-box"></div>
         </div>
         {% endfor %}
+
+        <!-- 분석 결과 표시 -->
+        {% if topic.analysis %}
+        <div class="analysis-box">
+            <h4>📊 GPT 분석 요약</h4>
+            {% for category, values in topic.analysis.items() %}
+                <div>
+                    <strong>[{{ category }}]</strong><br>
+                    - 진보: {{ values["진보"] }}<br>
+                    - 중립: {{ values["중립"] }}<br>
+                    - 보수: {{ values["보수"] }}<br><br>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
     </div>
     {% endfor %}
 

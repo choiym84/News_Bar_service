@@ -1,18 +1,152 @@
-<!-- app/front/articles.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>기사 목록</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .article-list {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0;
+            list-style: none;
+        }
+
+        .article-item {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .article-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #0073e6;
+            text-decoration: none;
+        }
+
+        .article-meta {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .action-buttons a {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+
+        .btn-danger {
+            background: #ff4d4f;
+            color: white;
+        }
+
+        .btn-summary {
+            background: #1890ff;
+            color: white;
+        }
+
+        .btn-full {
+            background: #52c41a;
+            color: white;
+        }
+
+        /* 페이징 */
+        .pagination {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .pagination a, .pagination strong {
+            margin: 0 5px;
+            padding: 6px 10px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .pagination a {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .pagination strong {
+            background: #0073e6;
+            color: white;
+        }
+    </style>
 </head>
 <body>
-    <h1>기사 목록</h1>
-    <ul>
+    <h1>📰 기사 목록</h1>
+    <ul class="article-list">
         {% for article in articles %}
-        <li>
-            <a href="/article/{{ article.id }}">{{ article.title }}</a> - {{ article.publisher }} ({{ article.publish_date[:10] }})
+        <li class="article-item">
+            <a class="article-title" href="/article/{{ article.id }}">{{ article.title }}</a>
+            <div class="article-meta">{{ article.publisher }} | {{ article.publish_date[:10] }}</div>
+
+            <div class="action-buttons">
+                <a href="/article/{{ article.id }}/risk" class="btn-danger">위험도 판단</a>
+                <a href="/article/{{ article.id }}/summary" class="btn-summary">요약 보기</a>
+                <a href="/article/{{ article.id }}" class="btn-full">본문 보기</a>
+            </div>
         </li>
         {% endfor %}
     </ul>
+
+    <!-- ✅ 페이징 UI -->
+    <div class="pagination">
+    {% set start_page = current_page - 5 if current_page - 5 > 1 else 1 %}
+    {% set end_page = current_page + 4 if current_page + 4 < total_pages else total_pages %}
+
+    {% if start_page > 1 %}
+        <a href="/articles?page=1">1</a>
+        {% if start_page > 2 %}
+            ... 
+        {% endif %}
+    {% endif %}
+
+    {% if current_page > 1 %}
+        <a href="/articles?page={{ current_page - 1 }}">« 이전</a>
+    {% endif %}
+
+    {% for p in range(start_page, end_page + 1) %}
+        {% if p == current_page %}
+            <strong>{{ p }}</strong>
+        {% else %}
+            <a href="/articles?page={{ p }}">{{ p }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if end_page < total_pages %}
+        {% if end_page < total_pages - 1 %}
+            ...
+        {% endif %}
+        <a href="/articles?page={{ total_pages }}">{{ total_pages }}</a>
+    {% endif %}
+
+    {% if current_page < total_pages %}
+        <a href="/articles?page={{ current_page + 1 }}">다음 »</a>
+    {% endif %}
+    </div>
+
 </body>
 </html>

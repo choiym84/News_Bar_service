@@ -76,7 +76,7 @@ def final_predict_with_scoring_simple(text, media_orientation, model, tokenizer,
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-def load_model_and_tokenizer_simple(save_path="app/utils/AI_Model/saved_kobigbird_kopolitic"):
+def load_model_and_tokenizer_simple(save_path="app/utils/AI_Model/save_kobigbird_model"):
     tokenizer = AutoTokenizer.from_pretrained(save_path)
     model = AutoModelForSequenceClassification.from_pretrained(save_path)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

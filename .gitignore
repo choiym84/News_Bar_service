@@ -3,3 +3,5 @@ app/utils/AI_Model/saved_kobigbird_kopolitic/
 __pycache__/ 
 *.pyc 
 venv/ 
+app/utils/findFake/gov_combined_db/
+app/utils/AI_Model/save_kobigbird_model/

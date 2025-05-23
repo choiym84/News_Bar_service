@@ -1,19 +1,90 @@
-<!-- app/front/article_view.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>{{ article.title }}</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f7f7f7;
+            padding: 40px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            font-size: 1.8em;
+            color: #222;
+        }
+
+        .meta {
+            font-size: 0.95em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            line-height: 1.6;
+            font-size: 1.05em;
+            color: #333;
+            white-space: pre-wrap;
+        }
+
+        .buttons {
+            margin-top: 20px;
+        }
+
+        .buttons a {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 8px 14px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.95em;
+        }
+
+        .btn-back {
+            background: #ddd;
+            color: #333;
+        }
+
+        .btn-summary {
+            background: #1890ff;
+            color: white;
+        }
+
+        .btn-risk {
+            background: #ff4d4f;
+            color: white;
+        }
+    </style>
 </head>
 <body>
-    <h1>{{ article.title }}</h1>
-    <p><strong>작성자:</strong> {{ article.reporter }} | <strong>발행:</strong> {{ article.publish_date.strftime('%Y-%m-%d') }}</p>
-    <p><strong>언론사:</strong> {{ article.publisher }}</p>
-    <hr>
-    <div>
-        {{ article.content }}
+    <div class="container">
+        <h1>{{ article.title }}</h1>
+        <div class="meta">
+            📰 <strong>{{ article.publisher }}</strong> |
+            🧑 기자: {{ article.reporter }} |
+            🗓 발행일: {{ article.publish_date.strftime('%Y-%m-%d') }}
+        </div>
+        <hr>
+        <div class="content">
+            {{ article.content }}
+        </div>
+
+        <div class="buttons">
+            <a href="/article/{{ article.id }}/summary" class="btn-summary">📝 요약 보기</a>
+            <a href="/article/{{ article.id }}/risk" class="btn-risk">⚠️ 위험도 판단</a>
+            <a href="/articles" class="btn-back">← 기사 목록으로</a>
+        </div>
     </div>
-    <br>
-    <a href="/articles">← 기사 목록으로</a>
 </body>
 </html>

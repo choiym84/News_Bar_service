@@ -5,12 +5,10 @@ from app.utils.headline_crawler import get_naver_headlines
 from app.utils.naver_api import search_news_by_keyword
 from app.utils.content_crawler import crawl_articles
 from app.db.insertData import store_hot_topics_and_return_list, save_article
-from app.utils.AI_Model.AI_main import ai_model2
+from app.utils.AI_Model.AI_main import ai_model2,ai_model3
 from app.db.findData import find_article_id_by_url
 from app.utils.AWS_img import download_image_to_local,upload_image_to_s3_from_url
-
-
-# from app.utils.AI_Model.hot_topic import generate_responses
+from app.utils.AI_Model.hot_topic import get_political_keywords_from_headlines
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -20,9 +18,13 @@ def request_first_model(titles):
     '''
     1차 AI 모델 임포트.
     '''
+    print(titles)
+    print("###############")
+    keywords = get_political_keywords_from_headlines(titles, save_to_file=False)
+    print(keywords)
     # keywords = generate_responses(titles)
     keywords =  ["국민의힘"]#,"이재명","진보주의","대선투표","7인회","김문수"]#["김문수·국힘 지도부 발언"]#, "대법원장 탄핵 논란", "이재명 사법리스크", "김문수·국힘 지도부 발언", "김정은 장갑무력 강조", "가짜뉴스·내란세력 규정"]
-    keywords = ['4년 연임제','5·18 정신 수록','국정 능력 vs 진짜 일꾼',"내란수괴",'윤 대통령 탈당','이재명 지지 선언']
+    # keywords = ['홍준표 지지']#, '이재명 평화', '대통령경호처 쇄신', '김문수 이준석', '낙승 압승 금지', '민주당 낙관론']
     return keywords #일단 걍 넘기는거지.
 
 
@@ -175,7 +177,7 @@ def start_pipeline():
         logger.info(f"언론사 라벨링에서 총 {idx}개의 기사가 제거되었습니다.")
         logger.info(f"이번 키워드의 성향별 기사 갯수 : 보수 {con}개, 중도 {cen}개, 진보 {pro}개") #
         
-
+        k = 0
         new_data=[]
         # 6. 기사 저장
         for i in data:
@@ -184,7 +186,7 @@ def start_pipeline():
                 pass
             else: #기존에 기사가 없으면
                 a = save_article(i)
-
+            k = i['keyword']
             new_data.append({'article_id':a,'keyword_id':i['keyword'],'stance':i['stance']})
 
         logger.info("기사 저장 완료")
@@ -195,7 +197,9 @@ def start_pipeline():
         
         data = ai_model2(new_data) #성향에 따라 3개 3개 3개의 기사만 넘어올거임.
         # print(len(data)) #일치 하는 것만 넘어옴. 아래 주석이 데이터 형태.
-
+        print("###형태만 좀 봅시다.")
+        print(data)
+        ai_model3(data,k)
         
         '''
         {'title', 'content', 'publisher', 'reporter', 'link', 'keyword': {'keyword': '김문수국힘 지도부 발언', 'id': 105}, 'pub_date', 'stance'}

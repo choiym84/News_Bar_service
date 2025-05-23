@@ -127,3 +127,20 @@ def bridge_conn(article_id,hot_topics_id,stance):
         return None
     finally:
         db.close()
+
+
+def save_analyze(text,hot_topic_id):
+    db = SessionLocal()
+    try:
+        data = AnalysisSummary(hot_topics_id=hot_topic_id,content = text)
+        db.add(data)
+        db.commit()
+        db.refresh(data)
+        return data
+    except Exception as e:
+        db.rollback()
+        print(f"AnalysisSummary 삽입 오류: {e}")
+        return None
+    finally:
+        db.close()
+

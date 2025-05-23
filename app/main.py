@@ -8,10 +8,12 @@ from app.scheduler import start_scheduler  # 스케줄러가 있다면
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("🚀 Lifespan: 스케줄러 시작 중...")
-    start_scheduler()
+    import threading
+    print("🚀 Lifespan: 스케줄러 백그라운드에서 실행 중...")
+    threading.Thread(target=start_scheduler, daemon=True).start()
     yield
     print("🛑 Lifespan: 서버 종료!")
+
 
 app = FastAPI(lifespan=lifespan)
 
