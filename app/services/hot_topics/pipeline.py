@@ -9,6 +9,7 @@ from app.utils.AI_Model.AI_main import ai_model2,ai_model3
 from app.db.findData import find_article_id_by_url
 from app.utils.AWS_img import download_image_to_local,upload_image_to_s3_from_url
 from app.utils.AI_Model.hot_topic import get_political_keywords_from_headlines
+from app.db.updateData import update_hot_topic_activate
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -18,14 +19,13 @@ def request_first_model(titles):
     '''
     1차 AI 모델 임포트.
     '''
-    print(titles)
-    print("###############")
+    
     keywords = get_political_keywords_from_headlines(titles, save_to_file=False)
-    print(keywords)
+    
     # keywords = generate_responses(titles)
-    keywords =  ["국민의힘"]#,"이재명","진보주의","대선투표","7인회","김문수"]#["김문수·국힘 지도부 발언"]#, "대법원장 탄핵 논란", "이재명 사법리스크", "김문수·국힘 지도부 발언", "김정은 장갑무력 강조", "가짜뉴스·내란세력 규정"]
+    # keywords =  ["국민의힘"]#,"이재명","진보주의","대선투표","7인회","김문수"]#["김문수·국힘 지도부 발언"]#, "대법원장 탄핵 논란", "이재명 사법리스크", "김문수·국힘 지도부 발언", "김정은 장갑무력 강조", "가짜뉴스·내란세력 규정"]
     # keywords = ['홍준표 지지']#, '이재명 평화', '대통령경호처 쇄신', '김문수 이준석', '낙승 압승 금지', '민주당 낙관론']
-    return keywords #일단 걍 넘기는거지.
+    return keywords[:1] #일단 걍 넘기는거지.
 
 
 
@@ -164,6 +164,8 @@ def start_pipeline():
         for i in data:
             i['keyword'] = i['keyword']['id']
 
+        
+
         # 5. 언론사 필터링
 
         '''
@@ -191,19 +193,17 @@ def start_pipeline():
 
         logger.info("기사 저장 완료")
 
-
+        
         print(len(new_data))
         # 7. 기사 요약
         
         data = ai_model2(new_data) #성향에 따라 3개 3개 3개의 기사만 넘어올거임.
-        # print(len(data)) #일치 하는 것만 넘어옴. 아래 주석이 데이터 형태.
-        print("###형태만 좀 봅시다.")
+        print(len(data)) #일치 하는 것만 넘어옴. 아래 주석이 데이터 형태.
         print(data)
-        ai_model3(data,k)
         
-        '''
-        {'title', 'content', 'publisher', 'reporter', 'link', 'keyword': {'keyword': '김문수국힘 지도부 발언', 'id': 105}, 'pub_date', 'stance'}
-        '''
+        ai_model3(data,keyword)
+        
+
 
         # 기사 저장하고 id 받아옴.
         # data = store_filtered_articles_and_return_info(data, keyword['id'])
@@ -212,3 +212,4 @@ def start_pipeline():
     
     print("[Hot Topic Pipeline] 수집 완료 ✅")
     logger.info("[Hot Topic Pipeline] 수집 완료 ✅")
+    update_hot_topic_activate()

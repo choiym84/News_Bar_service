@@ -19,13 +19,16 @@ def get_naver_headlines(section_url: str = "https://news.naver.com/section/100",
     for article in articles[:limit]:
         title_tag = article.select_one('strong.sa_text_strong')
         link_tag = article.select_one('a')
-
+        link_high = article.select_one('span.sa_text_cluster_num').text
+        
+    
         if not title_tag or not link_tag:
             continue
 
         headlines.append({
             "title": title_tag.text.strip(),
-            "link": link_tag['href']
+            "link": link_tag['href'],
+            "best" : link_high
         })
         
     return headlines

@@ -3,7 +3,7 @@ import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.db.models import Base
-logging.basicConfig()
+logging.basicConfig(level=logging.INFO)
 logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 logging.getLogger('sqlalchemy.dialects').setLevel(logging.ERROR)
 logging.getLogger('sqlalchemy.pool').setLevel(logging.ERROR)

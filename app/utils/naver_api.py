@@ -14,7 +14,7 @@ HEADERS = {
     "X-Naver-Client-Secret": CLIENT_SECRET
 }
 
-def search_news_by_keyword(keyword, max_per_keyword: int = 50) -> List[Dict]:
+def search_news_by_keyword(keyword, max_per_keyword: int = 100) -> List[Dict]:
     results = []
     
     params = {

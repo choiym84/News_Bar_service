@@ -2,10 +2,30 @@ import re
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-from app.utils.findFake.run_functions_gpt_fake import load_vectorstore, answer_with_gpt
+from app.utils.findFake.run_functions_gpt_fake import answer_with_gpt
 from app.utils.findFake.naverAPI_news_time import 키워드_AND_쿼리_생성, 가장오래된_기사_역순
 from app.utils.findFake.naverAPI_news_similar import count_articles_with_repetition  # 🔁 반복 패턴 모듈 추가
 from app.utils.findFake.news_media_accuracy import compute_media_trust_penalty
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
+# ✅ 전역 캐시 선언
+EMBEDDING_CACHE = None
+
+# ✅ 싱글톤 방식으로 임베딩 객체 로딩
+def get_embeddings():
+    global EMBEDDING_CACHE
+    if EMBEDDING_CACHE is None:
+        EMBEDDING_CACHE = HuggingFaceEmbeddings(model_name="jhgan/ko-sroberta-multitask")
+    return EMBEDDING_CACHE
+
+# ✅ 캐시된 임베딩을 활용한 벡터스토어 로딩
+def load_vectorstore(persist_path="./gov_combined_db"):
+    embeddings = get_embeddings()
+    return Chroma(
+        persist_directory=persist_path,
+        embedding_function=embeddings,
+        collection_metadata={"hnsw:space": "cosine"},
+    )
 
 # ✅ LLM 판단 결과 파싱 함수
 def parse_llm_output(gpt_output: str):

@@ -9,7 +9,8 @@ client = OpenAI(api_key=key)  # 실제 키로 교체
 def compare_political_orientations_gpt_json(
         progressive_articles: list[str],
         neutral_articles: list[str],
-        conservative_articles: list[str]
+        conservative_articles: list[str],
+        keyword: str
 ) -> dict:
     j = "\n\n--- 진보 기사 ---\n" + "\n\n".join(progressive_articles)
     n = "\n\n--- 중립 기사 ---\n" + "\n\n".join(neutral_articles)
@@ -24,19 +25,25 @@ def compare_political_orientations_gpt_json(
 
 {b}
 
-위 기사를 바탕으로,
-1) AI가 유의미한 비교 카테고리(예: 정책 방향, 재정 전략, 사회적 영향 등)를 **선택**하고,
-2) 각 카테고리별로 진보/중립/보수 입장을 **각각 1~2문장**으로 **사실 위주로 요약**해줘.
+아래는 이번 비교 분석에서 중점적으로 다뤄야 할 **주제 키워드**입니다:
+👉 {keyword}
 
-단, 출력은 아래와 같은 구조로 깔끔하게 정리해줘:
-- [카테고리 이름]
+[요청]
+1. 위 키워드를 중심으로, AI가 유의미한 **비교 항목(Category)**을 자율적으로 정한 뒤,
+2. 각 항목별로 **진보/중립/보수의 입장을 각각 1~2문장으로 요약**해줘.
+3. 단, 비교 내용은 반드시 기사 내용에 기반하고, 과한 해석은 삼가줘.
+4. 진보와 보수의 입장이 말하는 공통점과 차이점을 기반으로 요약해줘
+
+[출력 형식]
+- [비교 항목 이름]
   - 진보: ...
   - 중립: ...
   - 보수: ...
 
-※ 표 형식은 사용하지 말고 위 구조를 지켜줘.
-※ 과한 해석 금지, 기사에 명시된 내용만 사용해.
+※ 표 형식은 사용하지 말고 위 구조를 따라줘.
+※ 핵심 비교 항목 위주로, 중복 없이 간결하게 정리해줘.
 """
+
 
     response = client.chat.completions.create(
         model="gpt-4-turbo",
@@ -101,11 +108,11 @@ cons = [
     "농업·화물 운송업계는 “온실가스 배출량이 많은 업종임에도 보전 장치가 없으면 농가·운수업체 생존이 위협받는다”며, 도입 전 충분한 감면·보조금 대책 없이는 현실성이 떨어진다고 반발했다.",
     "일부 경제 전문가들은 “탄소세를 매기기보다 R&D 세액공제·친환경 기술 개발 지원을 통해 시장 자율적으로 배출을 줄이는 편이 효과적”이라며 정부 지원 방향 전환을 제안했다.",
 ]
-result_json = compare_political_orientations_gpt_json(prog, neut, cons)
-import json
-# 결과 출력
-#print(json.dumps(result_json, ensure_ascii=False, indent=2))
+# result_json = compare_political_orientations_gpt_json(prog, neut, cons)
+# import json
+# # 결과 출력
+# #print(json.dumps(result_json, ensure_ascii=False, indent=2))
 
-# 결과 저장
-with open("comparison_result.json", "w", encoding="utf-8") as f:
-    json.dump(result_json, f, ensure_ascii=False, indent=2)
+# # 결과 저장
+# with open("comparison_result.json", "w", encoding="utf-8") as f:
+#     json.dump(result_json, f, ensure_ascii=False, indent=2)

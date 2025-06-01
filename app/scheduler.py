@@ -27,6 +27,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 import logging
 from datetime import datetime
 from app.services.hot_topics.pipeline import start_pipeline  # 동기 함수
+from app.services.hot_topics.headline import headline_update
 
 import threading  # 🔁 백그라운드 실행을 위한 추가
 
@@ -40,8 +41,16 @@ def start_scheduler():
         scheduler.add_job(
             start_pipeline,
             trigger=IntervalTrigger(hours=3),  # 테스트용: seconds=10
-            next_run_time=datetime.now(),
+            # next_run_time=datetime.now(),
             id="hot_topic_pipeline",
+            replace_existing=True
+        )
+
+        scheduler.add_job(
+            headline_update,
+            trigger=IntervalTrigger(minutes=100),
+            id="headline_update_job",
+            # next_run_time=datetime.now(),
             replace_existing=True
         )
         scheduler.start()

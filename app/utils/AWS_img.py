@@ -3,6 +3,8 @@ import os
 from dotenv import load_dotenv
 import requests
 from io import BytesIO
+import base64
+from urllib.parse import urlparse
 load_dotenv()
 
 s3 = boto3.client(
@@ -58,3 +60,29 @@ def download_image_to_local(img_url: str, save_dir: str = "images", file_name: s
     except Exception as e:
         print(f"❌ 이미지 다운로드 실패: {e}")
         return None
+
+
+def download_from_AWS_s3(key: str) -> str:
+    """
+    S3에서 이미지를 가져와 base64로 인코딩된 문자열 반환
+    실패하면 빈 문자열 반환
+    """
+    
+    key = key.replace("article_img/article_img/", "article_img/")
+    print(f"1단계 {key}")
+    parsed = urlparse(key)
+    print(f"2단계 {key}")
+    key = parsed.path.lstrip("/")
+    if parsed.query:
+        key += '?' + parsed.query
+    print(f"3단계 {key}")
+
+
+    try:
+        bucket = os.getenv("S3_BUCKET_NAME")
+        obj = s3.get_object(Bucket=bucket, Key=key)
+        content = obj["Body"].read()
+        return f"data:image/jpeg;base64,{base64.b64encode(content).decode('utf-8')}"
+    except Exception as e:
+        print(f"[S3 이미지 다운로드 실패] key={key} → {str(e)}")
+        return ""

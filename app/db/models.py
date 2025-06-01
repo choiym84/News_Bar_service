@@ -25,6 +25,10 @@ class Article(Base):
     publish_date = Column(TIMESTAMP)
     publisher = Column(String(255))
     img_addr = Column(String(255))
+    likes = Column(Integer)
+    views = Column(Integer)
+    field = Column(String(255))
+    headline = Column(Integer)
 
     # 관계
     article_summaries = relationship("ArticleSummary", back_populates="article")
@@ -37,7 +41,7 @@ class HotTopic(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255))
     create_date = Column(TIMESTAMP)
-    activate = Column(Boolean)
+    activate = Column(Integer)
 
     article_summaries = relationship("ArticleSummary", back_populates="hot_topic")
     analysis_summaries = relationship("AnalysisSummary", back_populates="hot_topic")

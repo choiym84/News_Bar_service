@@ -5,6 +5,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from typing import List, Dict
 from app.utils.AWS_img import upload_image_to_s3_from_url
+from urllib.parse import urlparse, parse_qs
 #핫토픽 저장하는 함수
 def store_hot_topics_and_return_list(keywords: list):
     """
@@ -17,16 +18,15 @@ def store_hot_topics_and_return_list(keywords: list):
     result = []
 
     try:
-        # 1. 기존 핫토픽 비활성화
-        db.query(HotTopic).filter(HotTopic.activate == 1).update({HotTopic.activate: 0})
-        db.flush()
+        # 1. 기존 핫토픽 비활성화 -> 나중에 하기로 정함. updataData.py로 가보기.
+        
 
-        # 2. 새 키워드 저장 (activate = 1)
+        # 2. 새 키워드 저장 (activate = 2)
         for keyword in keywords:
             topic = HotTopic(
                 name=keyword,
                 create_date=datetime.now(timezone.utc),
-                activate=1
+                activate=2
             )
             db.add(topic)
             db.flush()  # topic.id 확보
@@ -71,6 +71,7 @@ def summary_insert(summary_text,article_id,hot_topic_id):
         )
         db.add(summary_entry)
         db.commit()
+        
 
     except Exception as e:
         db.rollback()
@@ -78,10 +79,9 @@ def summary_insert(summary_text,article_id,hot_topic_id):
     finally:
         db.close()
 
-
 #기사 리스트를 저장하는 함수
 #아마 핫토픽용 저장 함수가 될 듯
-def save_article(article_data: dict) -> int | None:
+def save_article(article_data: dict,is_headline=0) -> int | None:
     """
     기사 URL이 존재하지 않으면 새로 저장하고 ID와 keyword 반환
     """
@@ -90,15 +90,39 @@ def save_article(article_data: dict) -> int | None:
     try:
 
         thumbnail = upload_image_to_s3_from_url(img_url=article_data['img_url'],s3_key=article_data['link'])
+        
+        parsed_url = urlparse(article_data['link'])
+        sid = parse_qs(parsed_url.query).get('sid', [None])[0]
+
+        # 🔄 sid → 카테고리 매핑
+        sid_map = {
+            '100': '정치',
+            '101': '경제',
+            '102': '사회',
+            '103': '생활/문화',
+            '104': '세계',
+            '105': 'IT/과학',
+            '154': '대선'
+        }
+        category = sid_map.get(sid, '기타')
+
+        # 기사 발행 시간에 대한 부분분
+        try:
+            publish_date = datetime.strptime(article_data["pub_date"], "%a, %d %b %Y %H:%M:%S %z")
+        except KeyError:
+            publish_date = datetime.utcnow()
+
 
         new_article = Article(
             title=article_data["title"],
             content=article_data["content"],
             url=article_data["link"],
             reporter=article_data["reporter"],
-            publish_date=datetime.strptime(article_data["pub_date"], "%a, %d %b %Y %H:%M:%S %z"),
+            publish_date=publish_date,
             publisher=article_data["publisher"],
-            img_addr=thumbnail
+            img_addr=thumbnail,
+            field=category,
+            headline = is_headline
         )
         db.add(new_article)
         db.commit()

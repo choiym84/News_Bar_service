@@ -1,3 +1,6 @@
+
+
+
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -22,7 +25,7 @@ def load_vectorstore(persist_path="./gov_combined_db"):
 
 
 # ✅ 프롬프트 템플릿 구성
-def build_prompt(context, title, question):
+def build_prompt(context, title, date, question):
     prompt_template = """
     
 다음은 정부기관의 문서 일부입니다. 기사 제목과 내용을 중심으로 판단하되, 문서 내용이 판단에 도움이 될 경우 참고해 주세요. 관련이 없다면 무시해도 됩니다.  
@@ -30,10 +33,13 @@ def build_prompt(context, title, question):
 [참고 문서]
 {context}
 
-이제 기사 제목과 기사 내용을 알려드리겠습니다.
+이제 기사 제목과 기사 작성시간, 기사 내용을 알려드리겠습니다.
 
 [기사 제목]
 {title}
+
+[기사 작성시간]
+{date}
 
 [기사 내용]
 {question}
@@ -42,12 +48,19 @@ def build_prompt(context, title, question):
 
 1.	사실 확인 가능 여부:
 기사에 등장한 정보가 외부 출처, 참고문서, 또는 일반적인 지식으로 교차 검증 가능한가요?
+※ 해당 사실이 오보이거나 정정된 이력이 있는지도 함께 판단해 주세요.
+※ 기사의 핵심 정보가 **기사 작성시간 이후에** 공식 해명, 정정보도, 반박 보도 등으로 사실이 아닌 것으로 밝혀졌는지도 함께 판단해주세요.
 2.	공식 출처 언급 여부:
 기사에서 정부 기관, 공공 인물, 공식 문서 등 신뢰할 수 있는 출처를 명확히 언급했는지 판단해 주세요.
 3.	과장된 표현 여부:
 선동적이거나 감정을 자극하는 표현, 현실에 비해 과도하게 부풀려진 수치나 피해 주장, 또는 사실 여부가 불분명한 극단적 표현이 사용되었는지 확인해 주세요.
+※ '유도성'까지 포함해 더 넓게 판단해 주세요.
+※ '특정 인물에 대한 과도한 긍정·부정 묘사'까지 포함해 더 넓게 판단해주세요.
 4.	논리적 오류 여부:
 기사 내 주장들 사이에 논리적 비약, 원인과 결과 간 모순, 혹은 결론을 뒷받침하지 못하는 근거 등이 있는지 확인해 주세요.
+※ '비약·단정·인과관계 왜곡'까지 포함하여 평가해 주세요.
+※ '특정 인물/사건에 대한 일관된 이미지 형성(영웅/악인)'까지 포함하여 평가해 주세요.
+※ '반대 근거나 대안 없이 일방적인 해석을 유도'까지 포함하여 평가해 주세요.
 
 [출력 형식]
 - 각 항목에 대해 “있다/없다/그렇다/아니다” 등으로 먼저 판단해서 적어주고, 한두 문장의 근거를 적어주세요.
@@ -67,9 +80,9 @@ def build_prompt(context, title, question):
 """
     prompt = PromptTemplate(
         template=prompt_template,
-        input_variables=["context", "title", "question"]
+        input_variables=["context", "title", "date", "question"]
     )
-    return prompt.format(context=context, title=title, question=question)
+    return prompt.format(context=context, title=title, date=date, question=question)
 
 
 # ✅ GPT 호출
@@ -92,7 +105,7 @@ def generate_answer_with_gpt(prompt, model="gpt-4o"):
 
 
 # ✅ 문서 검색 → 프롬프트 구성 → 응답 생성 (threshold 필터링 추가)
-def answer_with_gpt(vectorstore, title, content, k, threshold):
+def answer_with_gpt(vectorstore, title, date, content, k, threshold):
     # 1) 코사인 유사도 점수와 함께 상위 k개 문서 가져오기
     docs_and_scores = vectorstore.similarity_search_with_relevance_scores(content, k=k)
     # [(Document, cosine_similarity), ...]
@@ -102,22 +115,28 @@ def answer_with_gpt(vectorstore, title, content, k, threshold):
 
     # 3) 필터링 결과 출력
     if filtered:
+        print(f"🔍 코사인 유사도 ≥ {threshold} 상위 {len(filtered)}개 보도자료:")
         for i, (doc, sim) in enumerate(filtered, 1):
             snippet = doc.page_content[:200].replace("\n", " ")
+            print(f"{i}. [유사도 {sim:.4f}] → {snippet}…")
         docs = [doc for doc, _ in filtered]
         context = "\n\n".join([d.page_content[:800] for d in docs])
     else:
+        print(f"🔍 (유사도 ≥ {threshold})인 보도자료가 없습니다. 프롬프트에서 참고 문서를 제외합니다.")
         docs = []
         context = ""  # 컨텍스트 없이 프롬프트 구성
 
+    print("\n" + "="*60 + "\n")
 
     # 4) GPT 프롬프트 생성 및 호출
-    prompt = build_prompt(context=context, title=title, question=content)
+    prompt = build_prompt(context=context, title=title, date = date, question=content)
     result_text, official = generate_answer_with_gpt(prompt)
 
     # 5) 출력
+    print("📢 GPT 응답:\n", result_text)
     if official and docs:
         date = docs[0].metadata.get("date", "날짜 정보 없음")
+        print(f"\n📅 공식 출처 근거 문서 날짜: {date}")
 
     return result_text
 

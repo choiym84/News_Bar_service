@@ -96,6 +96,37 @@
     </style>
 </head>
 <body>
+
+
+    <form method="get" action="/articles" style="text-align: center; margin-bottom: 20px;">
+    <label>
+        카테고리:
+        <select name="category">
+            <option value="">전체</option>
+            <option value="정치">정치</option>
+            <option value="경제">경제</option>
+            <option value="사회">사회</option>
+            <option value="생활/문화">생활/문화</option>
+            <option value="세계">세계</option>
+            <option value="IT/과학">IT/과학</option>
+        </select>
+    </label>
+
+    <label>
+        정렬:
+        <select name="sort">
+            <option value="latest">최신순</option>
+            <option value="views">조회수순</option>
+            <option value="popular">인기순</option>
+        </select>
+    </label>
+
+    <button type="submit">필터 적용</button>
+    </form>
+
+
+
+
     <h1>📰 기사 목록</h1>
     <ul class="article-list">
         {% for article in articles %}
