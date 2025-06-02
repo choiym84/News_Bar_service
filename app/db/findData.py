@@ -31,10 +31,22 @@ def find_article_by_id(id: int) -> dict:
         db.close()
 
 #db에 저장된 기사 다 불러오기 + 카테고리 별로 나눌 수 있어야 함.
-def find_all_article(page=1, per_page=10, category="전체") -> dict:
+def find_all_article(page=1, per_page=10, category=99) -> dict:
     db = SessionLocal()
     try:
         query = db.query(Article)
+
+        sid_map = {
+            '100': '정치',
+            '101': '경제',
+            '102': '사회',
+            '103': '생활/문화',
+            '104': '세계',
+            '105': 'IT/과학',
+            '154': '대선'
+        }
+        category = sid_map.get(category, "전체")
+        print(category)
 
         # 🔍 카테고리가 "전체"가 아닌 경우만 필터 적용
         if category != "전체":
@@ -200,12 +212,6 @@ def get_headline_articles(limit: int = 8):
 
 
     return result
-
-
-
-
-
-
 
 
 def find_hottopic_detail_by_id(hot_topic_id: int, stance: str = None) -> dict | None:

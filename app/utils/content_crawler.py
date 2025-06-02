@@ -3,11 +3,8 @@ from bs4 import BeautifulSoup
 import aiohttp
 import asyncio
 from typing import List, Dict, Optional
-
 import re
-from konlpy.tag import Okt
 
-okt = Okt()
 
 def clean_article_content(content: str) -> str:
     # 불필요한 이미지 설명, 기자 이름, 출처 등 제거
@@ -24,11 +21,9 @@ def clean_article_content(content: str) -> str:
         content = re.sub(pattern, '', content)
     return content.strip()
 
-def is_meaningful_article(content: str, min_length: int = 300, min_nouns: int = 20) -> bool:
-    if len(content) < min_length:
-        return False
-    nouns = okt.nouns(content)
-    return len(nouns) >= min_nouns
+def is_meaningful_article(content: str, min_length: int = 300) -> bool:
+    content_length = len(content.strip())
+    return content_length >= min_length
 
 
 logging.basicConfig(

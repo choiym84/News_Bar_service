@@ -65,7 +65,7 @@ def get_articles_json(page: int = 1, per_page: int = 10):
 ################################################################
 
 @router.get("/app/articles/{category}")
-def get_articles_json(page: int = 1, per_page: int = 10,category:str ="정치"):
+def get_articles_json(page: int = 1, per_page: int = 10,category:int = 100):
     try:
 
         articles = find_all_article(page, per_page,category=category)
@@ -86,9 +86,9 @@ def get_articles_json(page: int = 1, per_page: int = 10,category:str ="정치"):
                 "content": a["content"],
                 # "description": a.get("summary", a["content"][:100] + "..."),  # 요약이 없으면 일부 본문
                 "source": a["publisher"],
-                "publishedAt": a["publish_date"]
+                "publishedAt": a["publish_date"],
                 # "imageUrl": a["img_addr"],
-                # "originalUrl": a["url"]
+                "originalUrl": a["url"]
             })
 
         return JSONResponse(content={

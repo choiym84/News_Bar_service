@@ -1,5 +1,3 @@
-
-import torch
 from app.db.findData import check_summary_exists,find_article_id_by_url,find_article_by_id
 from app.db.insertData import summary_insert, bridge_conn,save_analyze
 from app.utils.AI_Model.politic_predict import load_model_and_tokenizer_simple, final_predict_with_scoring_simple,simple_political_match,simple_political_match_with_gpt
