@@ -46,7 +46,7 @@ def get_political_keywords_from_headlines(headlines: list[str], save_to_file=Fal
 """
 
     response = client.chat.completions.create(
-        model="gpt-4-turbo",
+        model="gpt-4.1-nano",
         messages=[
             {"role": "system", "content": "너는 정치 헤드라인에서 핵심 키워드를 잘 뽑는 AI야."},
             {"role": "user", "content": prompt}

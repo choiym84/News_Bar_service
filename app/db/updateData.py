@@ -2,7 +2,8 @@ from app.db.database import SessionLocal
 from app.db.models import ArticleSummary,Article,HotTopic,Bridge,AnalysisSummary
 from sqlalchemy.orm import joinedload
 from collections import defaultdict
-from sqlalchemy import desc
+from sqlalchemy import desc,and_
+
 
 #핫토픽 activate변경 함수
 #기존 activate = 1 -> 0
@@ -11,9 +12,8 @@ from sqlalchemy import desc
 def update_hot_topic_activate():
     db = SessionLocal()
     try:
-        db.query(HotTopic).filter(HotTopic.activate == 1).update({HotTopic.activate: 0})
-    
-        db.flush()
+        # db.query(HotTopic).filter(HotTopic.activate == 1).update({HotTopic.activate: 0})
+        # db.flush()
         db.query(HotTopic).filter(HotTopic.activate == 2).update({HotTopic.activate: 1})
         db.commit()
     finally:

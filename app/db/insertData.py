@@ -153,18 +153,29 @@ def bridge_conn(article_id,hot_topics_id,stance):
         db.close()
 
 
-def save_analyze(text,hot_topic_id):
+def save_analyze(text, hot_topic_id):
     db = SessionLocal()
     try:
-        data = AnalysisSummary(hot_topics_id=hot_topic_id,content = text)
-        db.add(data)
+        # 1. hot_topic_id로 기존 데이터 조회
+        existing = db.query(AnalysisSummary).filter(AnalysisSummary.hot_topics_id == hot_topic_id).first()
+
+        if existing:
+            # 2. 있으면 업데이트
+            existing.content = text
+        else:
+            # 3. 없으면 새로 삽입
+            existing = AnalysisSummary(hot_topics_id=hot_topic_id, content=text)
+            db.add(existing)
+
         db.commit()
-        db.refresh(data)
-        return data
+        db.refresh(existing)
+        return existing
+
     except Exception as e:
         db.rollback()
-        print(f"AnalysisSummary 삽입 오류: {e}")
+        print(f"AnalysisSummary 삽입/수정 오류: {e}")
         return None
+
     finally:
         db.close()
 

@@ -159,6 +159,7 @@ async def analyze_image_factcheck(image: UploadFile = File(...)):
         #         "conclusion":       str(eval_result["final_risk"])
         #     }
         # }), 200
+        print(f"최종 위험도 : {eval_result["final_risk"]}")
     
         return {
             "status": "success",
@@ -166,7 +167,7 @@ async def analyze_image_factcheck(image: UploadFile = File(...)):
                 "type": "factcheck",
                 "title": title,
                 "factCheckResults": fact_items,
-                "conclusion": str(eval_result["final_risk"])
+                "conclusion": str(eval_result["final_risk"]) + " %"
             }
         }
 
@@ -337,16 +338,30 @@ async def analyze_article_by_url_summary(request:ArticleRequest):
             content={"status": "error", "message": "서버 오류"}, status_code=500)
 
 @router.post('/api/v1/analysis/factcheck')
-async def analyze_article_by_url_factcheck(request):
+async def analyze_article_by_url_factcheck(request:ArticleRequest):
     try:
-        data = request.get_json()
-        url = data.get("url")
+        url = request.url
         if not url:
-            return jsonify({'status': 'error', 'message': 'URL이 전달되지 않았습니다.'}), 400
+            return JSONResponse(
+            status_code=400,
+            content={
+            "status": "error",
+            'message': 'URL이 전달되지 않았습니다.'}
+        )
+
+
         # 1) Crawl article content
         article_info = crawl_naver_news_article_url(url)
         if not article_info:
-            return jsonify({'status': 'error', 'message': '기사 크롤링 실패'}), 200
+            return JSONResponse(
+        status_code=200,
+        content={
+        "status": "error",
+        'message': '기사 크롤링 실패'}
+        )
+        
+
+        
         content = article_info['content']
         media   = article_info['press']
         title = article_info['title']
@@ -382,19 +397,24 @@ async def analyze_article_by_url_factcheck(request):
             }
         ])
         print(fact_items)
-        return jsonify({
-            "status": "success",
-            "data": {
-                "type": "factcheck",
-                "title": title,
-                "factCheckResults": fact_items,
-                "conclusion": str(eval_result["final_risk"])
-            }
-        }), 200
+        print(f"최종 위험도 : {eval_result["final_risk"]}")
+        return JSONResponse(
+        status_code=200,
+        content={
+        "status": "success",
+        "data": {
+            "type": "factcheck",
+            "title": title,
+            "factCheckResults": fact_items,
+            "conclusion": str(eval_result["final_risk"])+ " %"
+        }
+    }
+    )
 
     except Exception as e:
         print(f"Server error: {e}")
-        return jsonify({'status': 'error', 'message': '서버 오류'}), 500
+        return JSONResponse(
+            content={"status": "error", "message": "서버 오류"}, status_code=500)
     
 
 # if __name__ == "__main__":

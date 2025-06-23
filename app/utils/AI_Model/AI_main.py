@@ -25,7 +25,7 @@ def ai_model2(articles_id):
 
     for id in articles_id:
         
-        article = find_article_by_id(id['article_id'])
+        article,_ = find_article_by_id(id['article_id'])
         text = article.content
         media_orientation = id['stance']
         link = article.url
@@ -43,7 +43,7 @@ def ai_model2(articles_id):
         result['link'] = link
         ######위험도 분석 
 
-        fake_score = evaluate_article(article.title, text, article.publish_date, article.publisher)
+        # fake_score = evaluate_article(article.title, text, article.publish_date, article.publisher)
         # print(fake_score)
         # if fake_score >= 0.6:
         #     print("###위험도 높음###")
@@ -106,7 +106,7 @@ def ai_model3(ids,keyword):
         conservative_texts = []
 
         for id in ids:
-            data = find_article_by_id(id['article_id'])
+            data,_ = find_article_by_id(id['article_id'])
             text = data.content
             if id['stance'] == '보수':
                 conservative_texts.append(text)

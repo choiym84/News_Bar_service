@@ -7,10 +7,11 @@ client = OpenAI(api_key=key)
 
 def summarize_with_chatgpt(article_text):
     prompt = f"""
-다음은 뉴스 기사 본문입니다. 가독성을 높여주고 독자가 읽고 싶을 정도의 길이로 요약해주세요. 기사 내용을 대표하는 핵심 포인트를를 포함해주세요.
-단, 리스트트 형태가 아닌 **줄글글 형식**으로 요약해 주세요.
-
-
+다음은 뉴스 기사 본문입니다. 이를 간결하고 명확하게 요약해주세요.
+줄글 형태가 아닌 **항목별 리스트 형식**으로 요약해 주세요.
+각 항목은 1문장 이내로 작성하되, **원문에 있는 중요한 정보(인물, 날짜, 수치, 발언, 결정사항 등)**가 빠지지 않도록 꼭 포함해 주세요.
+요약 항목은 최소 3개, 최대 6개로 작성해주세요.
+"요약 불가" 같은 표현은 사용하지 마세요. 또한 max 토큰이 256이니 넘지 않도록 주의하세요.
 기사:
 {article_text}
 
@@ -24,7 +25,7 @@ def summarize_with_chatgpt(article_text):
             {"role": "user", "content": prompt}
         ],
         temperature=0.5,
-        max_tokens=256,
+        max_tokens=256, 
     )
 
     return response.choices[0].message.content.strip()

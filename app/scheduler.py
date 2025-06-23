@@ -40,7 +40,7 @@ def start_scheduler():
         scheduler = BackgroundScheduler()
         scheduler.add_job(
             start_pipeline,
-            trigger=IntervalTrigger(hours=3),  # 테스트용: seconds=10
+            trigger=IntervalTrigger(hours=12),  # 테스트용: seconds=10
             # next_run_time=datetime.now(),
             id="hot_topic_pipeline",
             replace_existing=True
@@ -48,9 +48,9 @@ def start_scheduler():
 
         scheduler.add_job(
             headline_update,
-            trigger=IntervalTrigger(minutes=100),
+            trigger=IntervalTrigger(minutes=30),
             id="headline_update_job",
-            # next_run_time=datetime.now(),
+            next_run_time=datetime.now(),
             replace_existing=True
         )
         scheduler.start()

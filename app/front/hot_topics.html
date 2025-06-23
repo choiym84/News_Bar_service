@@ -36,7 +36,7 @@
 <body>
     <h2>🔥 실시간 인기 키워드</h2>
 
-    <!-- 키워드 탭 -->
+    <!-- 키워드 태그 -->
     {% for topic in topics %}
         <span class="tag" onclick="showStances('{{ topic.id }}')">#{{ topic.name }}</span>
     {% endfor %}
@@ -47,6 +47,7 @@
     <div id="stance_area_{{ topic.id }}" class="hidden">
         <h3>#{{ topic.name }}</h3>
 
+        <!-- 진보/중립/보수 버튼 -->
         {% for stance in ['진보', '중립', '보수'] %}
             <span class="stance-button" onclick="showMedia('{{ topic.id }}', '{{ stance }}')">{{ stance }}</span>
         {% endfor %}
@@ -67,26 +68,38 @@
                 <div>데이터 없음</div>
             {% endif %}
 
-            <!-- 요약 박스 (고정 위치) -->
+            <!-- 요약 박스 -->
             <div id="summary_box_{{ topic.id }}_{{ stance }}" class="summary-fixed-box"></div>
         </div>
         {% endfor %}
 
-        <!-- 분석 결과 표시 -->
+        <!-- GPT 분석 결과 -->
         {% if topic.analysis %}
         <div class="analysis-box">
             <h4>📊 GPT 분석 요약</h4>
-            {% for category, values in topic.analysis.items() %}
+
+            {% if topic.analysis["1. 전체 요약"] %}
                 <div>
-                    <strong>[{{ category }}]</strong><br>
-                    - 진보: {{ values["진보"] }}<br>
-                    - 중립: {{ values["중립"] }}<br>
-                    - 보수: {{ values["보수"] }}<br><br>
+                    <strong>[1. 전체 요약]</strong><br>
+                    - 진보: {{ topic.analysis["1. 전체 요약"]["진보"] }}<br>
+                    - 중립: {{ topic.analysis["1. 전체 요약"]["중립"] }}<br>
+                    - 보수: {{ topic.analysis["1. 전체 요약"]["보수"] }}<br><br>
                 </div>
-            {% endfor %}
+            {% endif %}
+
+            {% if topic.analysis["2. 관점별 주요 비교 카테고리"] %}
+                <strong style="color:#0048ff">[2. 관점별 주요 비교 카테고리]</strong><br><br>
+                {% for category, values in topic.analysis["2. 관점별 주요 비교 카테고리"].items() %}
+                    <div>
+                        <strong>{{ category }}</strong><br>
+                        - 진보: {{ values["진보"] }}<br>
+                        - 중립: {{ values["중립"] }}<br>
+                        - 보수: {{ values["보수"] }}<br><br>
+                    </div>
+                {% endfor %}
+            {% endif %}
         </div>
         {% endif %}
-
     </div>
     {% endfor %}
 

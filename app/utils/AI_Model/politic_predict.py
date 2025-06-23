@@ -140,7 +140,7 @@ from openai import OpenAI
 # GPT API 연결
 client = OpenAI(api_key=os.getenv("open_ai_API_KEY"))
 
-def gpt_rejudge_political_orientation(text: str) -> str:
+def gpt_rejudge_political_orientation(text: str,media: str) -> str:
     prompt = f"""
 다음은 정치 뉴스 기사입니다.
 
@@ -151,13 +151,16 @@ def gpt_rejudge_political_orientation(text: str) -> str:
 2. 보수
 3. 중립
 
+추가적으로 이 기사를 작성한 언론사의 성향은 아래와 같습니다. 내용과 너무 상반되지 않는 이상 최대한 media의 성향을 따라주세요.
+{media}
+
 조건:
-- 정책 방향, 비판 대상, 주요 주장 등을 고려하세요.
+- 정책 방향, 비판 대상, 주요 주장, 각 진영의 이념 등을 고려하세요.
 - 무조건 한 단어로만 답해주세요 (예: 진보).
 """
 
     response = client.chat.completions.create(
-        model="gpt-4-turbo",
+        model="gpt-4.1-nano",
         messages=[
             {"role": "system", "content": "너는 정치 기사 성향을 정확히 판단하는 AI야."},
             {"role": "user", "content": prompt}
@@ -200,7 +203,7 @@ def simple_political_match_with_gpt(text, media_orientation, model, tokenizer, d
         predicted_label = label_map[prediction]
 
         # 모든 예측에 대해 GPT로 재판단
-        gpt_label = gpt_rejudge_political_orientation(text)
+        gpt_label = gpt_rejudge_political_orientation(text,media_orientation)
         final_label = gpt_label
 
         ############
@@ -211,11 +214,14 @@ def simple_political_match_with_gpt(text, media_orientation, model, tokenizer, d
             match_result = True
 
         else:
-            if media_orientation == final_label:
-                match_result = True
+            if (media_orientation == '진보' and final_label == '보수') or (media_orientation == '보수' and final_label == '진보'):
+                match_result = False
+
+            else: match_result = True
 
         return {
             "predicted_label": predicted_label,
+            "media_label": media_orientation,
             "gpt_label": gpt_label,
             "final_label": final_label,
             "confidence": probs[0][prediction].item(),

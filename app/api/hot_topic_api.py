@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from app.db.findData import hot_topic_pipeline,find_activate_hottopic,find_hottopic_detail_by_id
+from app.db.findData import hot_topic_pipeline,find_activate_hottopic,find_hottopic_detail_by_id,find_analysis_by_hot_topic_id
 from fastapi.responses import JSONResponse
 router = APIRouter()
 templates = Jinja2Templates(directory="app/front")
@@ -58,6 +58,29 @@ def get_hot_topic_detail(hot_topic_id: int):
             return JSONResponse(status_code=404, content={
                 "status": "fail",
                 "message": "해당 핫토픽 정보를 찾을 수 없습니다."
+            })
+
+        return JSONResponse(content={
+            "status": "success",
+            "data": detail
+        })
+    
+    except Exception as e:
+        print(f"Server error: {e}")
+        return JSONResponse(
+            content={"status": "error", "message": "서버 오류"}, status_code=500)
+
+
+@router.get("/app/hottopic/{hot_topic_id}/analysis")
+def get_hot_topic_detail(hot_topic_id: int):
+    # DB에서 해당 ID의 핫토픽 상세 정보 조회
+    try:
+        detail = find_analysis_by_hot_topic_id(hot_topic_id)
+
+        if not detail:
+            return JSONResponse(status_code=404, content={
+                "status": "fail",
+                "message": "해당 핫토픽 비교분석 정보를 찾을 수 없습니다."
             })
 
         return JSONResponse(content={

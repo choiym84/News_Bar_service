@@ -1,9 +1,11 @@
 # app/api/article_api.py
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Query
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from app.db.findData import check_summary_exists,find_all_article, find_article_by_id,get_headline_articles
+from app.db.findData import check_summary_exists,find_all_article, find_article_by_id,get_headline_articles,find_article_by_keyword
+from app.db.insertData import summary_insert
+from app.utils.AI_Model.summary import summarize_with_chatgpt
 from fastapi.responses import JSONResponse
 from collections import defaultdict
 
@@ -27,9 +29,6 @@ def get_articles(request: Request, page: int = 1, per_page: int = 10):
 @router.get("/app/articles")
 def get_articles_json(page: int = 1, per_page: int = 10):
     try:
-
-
-
         articles = find_all_article(page, per_page)
 
         if not articles["articles"]:
@@ -48,9 +47,9 @@ def get_articles_json(page: int = 1, per_page: int = 10):
                 "content": a["content"],
                 # "description": a.get("summary", a["content"][:100] + "..."),  # 요약이 없으면 일부 본문
                 "source": a["publisher"],
-                "publishedAt": a["publish_date"]
-                # "imageUrl": a["img_addr"],
-                # "originalUrl": a["url"]
+                "publishedAt": a["publish_date"],
+                "imageUrl": a["image"],
+                "originalUrl": a["url"]
             })
 
         return JSONResponse(content={
@@ -87,12 +86,13 @@ def get_articles_json(page: int = 1, per_page: int = 10,category:int = 100):
                 # "description": a.get("summary", a["content"][:100] + "..."),  # 요약이 없으면 일부 본문
                 "source": a["publisher"],
                 "publishedAt": a["publish_date"],
-                # "imageUrl": a["img_addr"],
+                "imageUrl": a["image"],
                 "originalUrl": a["url"]
             })
 
         return JSONResponse(content={
             "status": "success",
+            "headline":articles['headline'],
             "data": grouped_data
         })
     
@@ -106,7 +106,7 @@ def get_articles_json(page: int = 1, per_page: int = 10,category:int = 100):
 # 기사 본문 페이지
 @router.get("/web/article/{article_id}", response_class=HTMLResponse)
 def get_article_detail(request: Request, article_id: int):
-    article = find_article_by_id(article_id)
+    article,_ = find_article_by_id(article_id)
     return templates.TemplateResponse("article_view.html", {
         "request": request,
         "article": article
@@ -117,7 +117,7 @@ def get_article_detail(request: Request, article_id: int):
 def get_article_detail(request: Request, article_id: int):
 
     try:
-        article = find_article_by_id(article_id)
+        article,img = find_article_by_id(article_id)
         if not article:
             return JSONResponse(
                 status_code=404,
@@ -133,7 +133,8 @@ def get_article_detail(request: Request, article_id: int):
                     "title": article.title,
                     "content": article.content,
                     "created_at": article.publish_date.isoformat(),
-                    "author": article.reporter
+                    "author": article.reporter,
+                    "img": img
                     # 필요한 필드를 자유롭게 추가하세요
                 }
             })
@@ -152,7 +153,92 @@ def get_article_summary(request: Request,article_id:int):
 
     return summary.summary_text
 
+@router.get("/app/article/{article_id}/summary")
+def get_article_summary(request: Request,article_id:int):
+
+    try:
+        summary = check_summary_exists(article_id)
+
+        if summary == None:
+
+            article,_ = find_article_by_id(article_id)
+            if not article:
+                return JSONResponse(status_code=404, content={
+                "status": "fail",
+                "message": "기사가 없습니다."
+                })
+            summary_text = summarize_with_chatgpt(article.content)
+            summary_insert(summary_text,article_id,211)
+
+
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "status": "success",
+                    "data": {
+                        "id":article_id,
+                        "summary_text":summary_text
+                        # 필요한 필드를 자유롭게 추가하세요
+                    }
+                })
+
+        else:
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "status": "success",
+                    "data": {
+                        "id":article_id,
+                        "summary_text":summary_text
+                        # 필요한 필드를 자유롭게 추가하세요
+                    }
+                })
+
+
+    except Exception as e:
+        print(f"Server error: {e}")
+        return JSONResponse(
+            content={"status": "error", "message": "서버 오류"}, status_code=500)
+
 ################################################################
+
+@router.get("/app/search/articles")
+def search_articles_json(
+    keyword: str = Query(...),
+    page: int = 1,
+    per_page: int = 10
+):
+    try:
+        offset = (page - 1) * per_page
+
+        # FULLTEXT 기반 검색
+        
+        results = find_article_by_keyword(keyword, page, per_page)
+
+        if not results:
+            return JSONResponse(status_code=404, content={
+                "status": "fail",
+                "message": "검색된 기사가 없습니다."
+            })
+
+        
+
+        return JSONResponse(content={
+            "status": "success",
+            "data": results
+        })
+
+    except Exception as e:
+        print(f"[검색 오류] {e}")
+        return JSONResponse(status_code=500, content={
+            "status": "error",
+            "message": "서버 오류"
+        })
+
+
+################################################################
+
+
 #메인 화면의 헤드라인 기사들
 @router.get("/web/main", response_class=HTMLResponse)
 def get_main(request: Request):

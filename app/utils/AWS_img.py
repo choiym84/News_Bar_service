@@ -69,20 +69,28 @@ def download_from_AWS_s3(key: str) -> str:
     """
     
     key = key.replace("article_img/article_img/", "article_img/")
-    print(f"1단계 {key}")
     parsed = urlparse(key)
-    print(f"2단계 {key}")
     key = parsed.path.lstrip("/")
     if parsed.query:
         key += '?' + parsed.query
-    print(f"3단계 {key}")
+    
 
 
     try:
         bucket = os.getenv("S3_BUCKET_NAME")
-        obj = s3.get_object(Bucket=bucket, Key=key)
-        content = obj["Body"].read()
-        return f"data:image/jpeg;base64,{base64.b64encode(content).decode('utf-8')}"
+
+        #객체를 직접 다운로드 받을 때때
+        # obj = s3.get_object(Bucket=bucket, Key=key)
+        # content = obj["Body"].read()
+        # return f"data:image/jpeg;base64,{base64.b64encode(content).decode('utf-8')}"
+
+        presigned_url = s3.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": bucket, "Key": key},
+            ExpiresIn=1800  # 유효 시간 (초)
+        )
+
+        return presigned_url
     except Exception as e:
         print(f"[S3 이미지 다운로드 실패] key={key} → {str(e)}")
         return ""

@@ -54,8 +54,8 @@ def calculate_risk_score(llm_results):
 
     weights = {
         "출처": 0.1,
-        "사실성": 0.25,
-        "논리": 0.25,
+        "사실성": 0.15,
+        "논리": 0.15,
         "과장": 0.1,
         "연결성": 0.0,
     }
@@ -88,8 +88,8 @@ def evaluate_article(title, content, 기사_작성시각, media):
     base_risk = calculate_risk_score(llm_results)
 
     # 5) 언론사 신뢰도 기반 페널티
-    trust_score, risk_penalty = compute_media_trust_penalty(media, max_penalty=0.15)
-    applied_penalty = risk_penalty
+    trust_score, risk_penalty = compute_media_trust_penalty(media, max_penalty=0.35)
+    applied_penalty = trust_score
 
     # 6) 최초 확산 지점
     query = 키워드_AND_쿼리_생성(keywords)
@@ -133,12 +133,13 @@ def evaluate_article(title, content, 기사_작성시각, media):
     # 8) 최종 리스크
     final_risk = round(base_risk + risk_boost, 4)
 
+
     return {
-        "final_risk":          final_risk,
-        "gpt_output":          gpt_output_split,
-        "risk_penalty":        applied_penalty,
-        "earliest_diffusion":  earliest_info,
-        "repetition_pattern":  repetition_info,
+        "final_risk": final_risk*100.0,
+        "gpt_output": gpt_output_split,
+        "risk_penalty": applied_penalty,
+        "earliest_diffusion": earliest_info,
+        "repetition_pattern": repetition_info,
     }
 
 def parse_gpt_output_to_items(gpt_output: str):

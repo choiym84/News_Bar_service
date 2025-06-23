@@ -2,8 +2,9 @@ from app.db.database import SessionLocal
 from app.db.models import ArticleSummary,Article,HotTopic,Bridge,AnalysisSummary
 from sqlalchemy.orm import joinedload
 from collections import defaultdict
-from sqlalchemy import desc
+from sqlalchemy import desc,text
 from app.utils.AWS_img import download_from_AWS_s3
+
 
 #기사의 요약이 존재하는지
 def check_summary_exists(article_id: int) -> bool:
@@ -26,31 +27,52 @@ def find_article_by_id(id: int) -> dict:
     db = SessionLocal()
     try:
         article = db.query(Article).filter(Article.id == id).first()
-        return article
+        
+        try:
+            img = None
+            if article.img_addr != "https://our-capstone06.s3.amazonaws.com/article_img/NoExistThumbnail.jpg":
+                img = download_from_AWS_s3(article.img_addr)
+        except Exception as e:
+            print(f"S3에서 이미지 다운로드 실패 {e}")
+
+        return article,img
     finally:
         db.close()
 
 #db에 저장된 기사 다 불러오기 + 카테고리 별로 나눌 수 있어야 함.
-def find_all_article(page=1, per_page=10, category=99) -> dict:
+def find_all_article(page=1, per_page=10, category=100) -> dict:
     db = SessionLocal()
     try:
+
         query = db.query(Article)
 
-        sid_map = {
-            '100': '정치',
-            '101': '경제',
-            '102': '사회',
-            '103': '생활/문화',
-            '104': '세계',
-            '105': 'IT/과학',
-            '154': '대선'
-        }
-        category = sid_map.get(category, "전체")
-        print(category)
+        category_id = "전체"
+
+        if category == 100:
+            category_id = '정치'
+
+        elif category == 101:
+            category_id = '경제'
+
+        elif category == 102:
+            category_id = '사회'
+
+        elif category == 103:
+            category_id = '생활/문화'
+
+        elif category == 104:
+            category_id = '세계'
+
+        elif category == 105:
+            category_id = 'IT/과학'
+
+        elif category == 154:
+            category_id = '대선'
+
 
         # 🔍 카테고리가 "전체"가 아닌 경우만 필터 적용
         if category != "전체":
-            query = query.filter(Article.field == category)
+            query = query.filter(Article.field == category_id)
 
         # 개수 계산
         total_articles = query.count()
@@ -60,9 +82,22 @@ def find_all_article(page=1, per_page=10, category=99) -> dict:
                         .offset((page - 1) * per_page) \
                         .limit(per_page).all()
 
+        print(query)
+        headline = []
         # 데이터 변환
-        article_list = [
-            {
+        article_list = []
+        for article in articles:
+
+            try:
+                img = None
+                if article.img_addr != "https://our-capstone06.s3.amazonaws.com/article_img/NoExistThumbnail.jpg":
+                    img = download_from_AWS_s3(article.img_addr)
+
+            except Exception as e:
+                print(f"S3에서 이미지 다운로드 실패 {e}")
+
+            if article.headline == 1:
+                headline.append({
                 "id": article.id,
                 "url": article.url,
                 "title": article.title,
@@ -70,12 +105,27 @@ def find_all_article(page=1, per_page=10, category=99) -> dict:
                 "publisher": article.publisher,
                 "reporter": article.reporter,
                 "publish_date": article.publish_date.strftime('%Y-%m-%d'),
-                "category": article.field
-            }
-            for article in articles
-        ]
+                "category": article.field,
+                "image": img,
+            })
+
+            article_list.append({
+                "id": article.id,
+                "url": article.url,
+                "title": article.title,
+                "content": article.content,
+                "publisher": article.publisher,
+                "reporter": article.reporter,
+                "publish_date": article.publish_date.strftime('%Y-%m-%d'),
+                "category": article.field,
+                "image": img,
+            })
+
+
+            
 
         return {
+            "headline" : headline,
             "articles": article_list,
             "current_page": page,
             "total_pages": (total_articles + per_page - 1) // per_page,
@@ -106,10 +156,11 @@ def find_article_by_hottopicId(id):
     db = SessionLocal()
     try:
         articles = db.query(Bridge).filter(Bridge.hot_topics_id == id).all()
-        for i in articles:
-            print(i.hot_topics_id,i.articles_id)
+        # for i in articles:
+        #     pass
+        #     # print(i.hot_topics_id,i.articles_id)
 
-        print(len(articles))
+        return len(articles)
     finally:
         db.close()
 
@@ -194,7 +245,9 @@ def get_headline_articles(limit: int = 8):
     
     for article in articles:
         try:
-            img = download_from_AWS_s3(article.img_addr)
+            img = None
+            if article.img_addr != "https://our-capstone06.s3.amazonaws.com/article_img/NoExistThumbnail.jpg":
+                img = download_from_AWS_s3(article.img_addr)
         except Exception as e:
             print(f"S3에서 이미지 다운로드 실패 {e}")
 
@@ -283,3 +336,77 @@ def find_hottopic_detail_by_id(hot_topic_id: int, stance: str = None) -> dict | 
         return None
     finally:
         db.close()
+
+
+def find_analysis_by_hot_topic_id(hot_topic_id:int):
+    db = SessionLocal()
+    try:
+        analysis = db.query(AnalysisSummary)\
+                .filter(AnalysisSummary.hot_topics_id == hot_topic_id)\
+                .order_by(AnalysisSummary.id.desc())\
+                .first()
+
+
+        return analysis.content
+
+    except Exception as e:
+        print(f"[핫토픽 조회 오류] {e}")
+        return None
+    finally:
+        db.close()
+
+
+def find_article_by_keyword(keyword: str, page: int = 1, per_page: int = 10):
+    db = SessionLocal()
+    try:
+        offset = (page - 1) * per_page
+        query = text("""
+            SELECT * FROM articles
+            WHERE MATCH(title, content) AGAINST(:keyword IN NATURAL LANGUAGE MODE)
+            LIMIT :limit OFFSET :offset
+        """)
+        articles = db.execute(query, {
+            "keyword": keyword,
+            "limit": per_page,
+            "offset": offset
+            }).mappings().fetchall()
+        total_articles = len(articles)
+
+        article_list = []
+        for article in articles:
+            
+
+            try:
+                img = download_from_AWS_s3(article["img_addr"])
+            except Exception as e:
+                
+                print(f"S3에서 이미지 다운로드 실패 {e}")
+
+            article_list.append({
+                "id": article["id"],
+                "url": article["url"],
+                "title": article["title"],
+                "content": article["content"],
+                "publisher": article["publisher"],
+                "reporter": article["reporter"],
+                "publish_date": article["publish_date"].strftime('%Y-%m-%d'),
+                "image": img,
+            })
+
+            
+
+        return {
+            "articles": article_list,
+            "current_page": page,
+            "total_pages": (total_articles + per_page - 1) // per_page,
+            "total_articles": total_articles,
+        }
+
+        
+    except Exception as e:
+        print(f"[Fulltext 검색 오류] {e}")
+        return []
+    finally:
+        db.close()
+
+

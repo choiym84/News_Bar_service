@@ -225,7 +225,6 @@ if __name__ == '__main__':
 
     result = get_article_by_press_and_lines_news_details(press, text_lines)
     print(result)
-    result = get_article_url_by_title_fuzzy(result[1])
     if result:
         url, date = result
         print("📰 매칭된 URL:", url)
