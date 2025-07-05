@@ -43,7 +43,9 @@
 네이버 정치 헤드라인 기사에서 현재 이슈가 되는 **핫토픽 키워드 6개**를 실시간으로 추출합니다.  
 이를 통해 사용자는 현재 정치권의 흐름을 한눈에 파악할 수 있습니다.
 
-![Keyword Extraction](./images/hot_topic.png)
+
+<img src="./images/hot_topic.png" alt="Keyword Extraction" width="400"/>
+
 
 ---
 
