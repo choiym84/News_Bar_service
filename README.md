@@ -74,6 +74,7 @@
 ## 🔗 데이터 및 모델 학습 출처
 
 - [KoPolitic Benchmark Dataset](https://github.com/Kdavid2355/KoPolitic-Benchmark-Dataset)
+- 이 데이터셋을 활용하여 Kobigbird 모델을 파인튜인하여 정치 성향 분류 모델 학습.
 
 ---
 
