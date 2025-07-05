@@ -58,7 +58,7 @@
 정치 성향별 기사들을 수집하고,  
 각 기사의 **핵심 내용을 요약**하여 제공합니다.
 
-![Political Classification](./images/summary.png)
+<img src="./images/summary.png" alt="Keyword Extraction" width="200"/>
 
 ---
 
@@ -67,7 +67,8 @@
 같은 이슈에 대한 **정치 성향별 시각 차이를 구조화·시각화**하여,  
 사용자가 다양한 관점을 쉽게 비교 분석할 수 있도록 지원합니다.
 
-![Comparison Analysis](./images/analysis.png)
+<img src="./images/analysis.png" alt="Keyword Extraction" width="200"/>
+
 
 ---
 
@@ -76,7 +77,8 @@
 플랫폼에 업로드된 개별 기사에 대해,  
 AI를 활용하여 **간결하고 정확한 요약본**을 제공합니다.
 
-![Article Summary](./images/article_summary.png)
+
+<img src="./images/article_summary.png" alt="Keyword Extraction" width="300"/>
 
 ---
 
@@ -89,7 +91,8 @@ AI를 활용하여 **간결하고 정확한 요약본**을 제공합니다.
 ✅ **확산 패턴**  
 등을 종합적으로 분석하여, **가짜뉴스 위험도 평가** 결과를 제공합니다.
 
-![Fake News Analysis](./images/article_fake.png)
+
+<img src="./images/article_fake.png" alt="Keyword Extraction" width="300"/>
 
 ---
 
@@ -99,7 +102,8 @@ AI를 활용하여 **간결하고 정확한 요약본**을 제공합니다.
 ✅ **스크린샷 이미지 업로드**를 통해 텍스트를 추출(OCR)하고,  
 ✅ 해당 기사에 대한 **요약** 및 **위험도 분석**을 진행할 수 있습니다.
 
-![Screenshot OCR](./images/screenshot_search.png)
+
+<img src="./images/screenshot_search.png" alt="Keyword Extraction" width="300"/>
 
 ---
 
