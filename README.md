@@ -44,7 +44,7 @@
 이를 통해 사용자는 현재 정치권의 흐름을 한눈에 파악할 수 있습니다.
 
 
-<img src="./images/hot_topic.png" alt="Keyword Extraction" width="400"/>
+<img src="./images/hot_topic.png" alt="Keyword Extraction" width="200"/>
 
 
 ---
