@@ -136,77 +136,76 @@ def label_media_bias(data):
 
 
 def start_pipeline():
-    # logger.info("[Hot Topic Pipeline] 수집 시작 ✅")
-    # asdf = 0
-    # # 1. 헤드라인 크롤링
-    # headlines = get_naver_headlines()
-    # s = []
-    # for k in headlines:
-    #     s.append(k["title"])
-    # logger.info(f"1번 데이터 확인 : {s}")
-    # print("#############################################")
-    # # 2. 모델 1 → 키워드 추출
-    # keywords = request_first_model(s)
-    # keywords = preprocess_keywords(keywords,load_stopwords("app//Stopwords.txt"))
-    # # keywords = store_hot_topics_and_return_list(keywords)
+    logger.info("[Hot Topic Pipeline] 수집 시작 ✅")
+    # 1. 헤드라인 크롤링
+    headlines = get_naver_headlines()
+    s = []
+    for k in headlines:
+        s.append(k["title"])
+    logger.info(f"1번 데이터 확인 : {s}")
+    print("#############################################")
+    # 2. 모델 1 → 키워드 추출
+    keywords = request_first_model(s)
+    keywords = preprocess_keywords(keywords,load_stopwords("app//Stopwords.txt"))
+    # keywords = store_hot_topics_and_return_list(keywords)
 
-    # logger.info(f"2번 데이터 확인 : {keywords}")
-    # print("#############################################")
-    # # 3. 키워드 기반 뉴스 검색
-    # for keyword in keywords:
-    #     articles_link = search_news_by_keyword(keyword)
+    logger.info(f"2번 데이터 확인 : {keywords}")
+    print("#############################################")
+    # 3. 키워드 기반 뉴스 검색
+    for keyword in keywords:
+        articles_link = search_news_by_keyword(keyword)
 
-    #     logger.info(f"{keyword}의 기사 갯수 : {len(articles_link)}")
-    #     #링크들만 뽑아놓음
-    #     links = [item["link"] for item in articles_link]
+        logger.info(f"{keyword}의 기사 갯수 : {len(articles_link)}")
+        #링크들만 뽑아놓음
+        links = [item["link"] for item in articles_link]
 
-    #     # 4. 뉴스 검색 + 본문 크롤링 (비동기)
-    #     articles = asyncio.run(crawl_articles(links))
-    #     data = merge_articles(articles,articles_link) # 데이터 형태{}
-    #     for i in data:
-    #         i['keyword'] = i['keyword']['id']
+        # 4. 뉴스 검색 + 본문 크롤링 (비동기)
+        articles = asyncio.run(crawl_articles(links))
+        data = merge_articles(articles,articles_link) # 데이터 형태{}
+        for i in data:
+            i['keyword'] = i['keyword']['id']
 
         
-    #     # 5. 언론사 필터링
+        # 5. 언론사 필터링
 
-    #     '''
-    #     이부분은 좀더 고민이 필요함. 현재는 성향별로 각각 3개, 총 9개의 기사만 뽑히게 됨.
-    #     그래서 혹시 데이터가 부족하진 않을까? 라는 걱정이 듦. 이 부분은 좀 체크가 필요
+        '''
+        이부분은 좀더 고민이 필요함. 현재는 성향별로 각각 3개, 총 9개의 기사만 뽑히게 됨.
+        그래서 혹시 데이터가 부족하진 않을까? 라는 걱정이 듦. 이 부분은 좀 체크가 필요
 
-    #     -> 먼저 성향일치 불문하고 필터링을 통과한 기사는 모두 db에 저장한다.
-    #     '''
-    #     data,idx,con,cen,pro = label_media_bias(data)
+        -> 먼저 성향일치 불문하고 필터링을 통과한 기사는 모두 db에 저장한다.
+        '''
+        data,idx,con,cen,pro = label_media_bias(data)
 
-    #     logger.info(f"언론사 라벨링에서 총 {idx}개의 기사가 제거되었습니다.")
-    #     logger.info(f"이번 키워드의 성향별 기사 갯수 : 보수 {con}개, 중도 {cen}개, 진보 {pro}개") #
+        logger.info(f"언론사 라벨링에서 총 {idx}개의 기사가 제거되었습니다.")
+        logger.info(f"이번 키워드의 성향별 기사 갯수 : 보수 {con}개, 중도 {cen}개, 진보 {pro}개") #
         
-    #     k = 0
-    #     new_data=[]
-    #     # 6. 기사 저장
-    #     for i in data:
-    #         a = find_article_id_by_url(i['link'])
-    #         if a: #있으면
-    #             pass
-    #         else: #기존에 기사가 없으면
-    #             a = save_article(i)
-    #         k = i['keyword']
-    #         new_data.append({'article_id':a,'keyword_id':i['keyword'],'stance':i['stance']})
+        k = 0
+        new_data=[]
+        # 6. 기사 저장
+        for i in data:
+            a = find_article_id_by_url(i['link'])
+            if a: #있으면
+                pass
+            else: #기존에 기사가 없으면
+                a = save_article(i)
+            k = i['keyword']
+            new_data.append({'article_id':a,'keyword_id':i['keyword'],'stance':i['stance']})
 
-    #     logger.info("기사 저장 완료")
-    #     # 7. 기사 요약
+        logger.info("기사 저장 완료")
+        # 7. 기사 요약
         
-    #     data = ai_model2(new_data) #성향에 따라 3개 3개 3개의 기사만 넘어올거임.
-    #     # print("핫토픽의 기사 수 : " + find_article_by_hottopicId())
-    #     ai_model3(data,keyword)
+        data = ai_model2(new_data) #성향에 따라 3개 3개 3개의 기사만 넘어올거임.
+        # print("핫토픽의 기사 수 : " + find_article_by_hottopicId())
+        ai_model3(data,keyword)
         
-    #     # 기사 저장하고 id 받아옴.
-    #     # data = store_filtered_articles_and_return_info(data, keyword['id'])
-    #     # analyzed_results = request_second_model(filtered_articles)
+        # 기사 저장하고 id 받아옴.
+        # data = store_filtered_articles_and_return_info(data, keyword['id'])
+        # analyzed_results = request_second_model(filtered_articles)
     
-    # update_hot_topic_activate()
-    # # find_good_hottopic()
-    # print("[Hot Topic Pipeline] 수집 완료 ✅")
-    # logger.info("[Hot Topic Pipeline] 수집 완료 ✅")
+    update_hot_topic_activate()
+    # find_good_hottopic()
+    print("[Hot Topic Pipeline] 수집 완료 ✅")
+    logger.info("[Hot Topic Pipeline] 수집 완료 ✅")
     pass
     # 이건 기존의 비교분석을 최신화하는 코드인데 앞으로 안쓰일듯듯
     
