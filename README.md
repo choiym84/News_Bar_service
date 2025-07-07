@@ -57,7 +57,7 @@
 ✅ **보수**  
 정치 성향별 기사들을 수집하고,  
 각 기사의 **핵심 내용을 요약**하여 제공합니다.
-
+- 기사 요약은 **GPT-4.1-nano** 모델을 프롬프트 엔지니어링 하여 제공합니다.
 <img src="./images/summary.png" alt="Keyword Extraction" width="200"/>
 
 ---
@@ -66,7 +66,7 @@
 
 같은 이슈에 대한 **정치 성향별 시각 차이를 구조화·시각화**하여,  
 사용자가 다양한 관점을 쉽게 비교 분석할 수 있도록 지원합니다.
-
+- 기사 비교 분석은 **GPT-4.1-nano** 모델을 프롬프트 엔지니어링 하여 제공합니다.
 <img src="./images/analysis.png" alt="Keyword Extraction" width="200"/>
 
 
