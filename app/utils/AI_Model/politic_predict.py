@@ -70,7 +70,7 @@ def final_predict_with_scoring_simple(text, media_orientation, model, tokenizer,
 
         return result
 
-## 두번째 모델이었음. gpt없이 kobigbird로만 판단하는 모델.
+## 두번째 모델. gpt없이 kobigbird로만 판단하는 모델.
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import os
@@ -195,6 +195,7 @@ def simple_political_match_with_gpt(text, media_orientation, model, tokenizer, d
         input_ids = inputs["input_ids"].to(device)
         attention_mask = inputs["attention_mask"].to(device)
 
+        #kobigbird 모델로 정치 성향을 판단.
         outputs = model(input_ids=input_ids, attention_mask=attention_mask)
         probs = torch.softmax(outputs.logits, dim=1)
         prediction = torch.argmax(probs, dim=1).item()
@@ -202,9 +203,19 @@ def simple_political_match_with_gpt(text, media_orientation, model, tokenizer, d
         label_map = {0: "진보", 1: "보수", 2: "중립"}
         predicted_label = label_map[prediction]
 
-        # 모든 예측에 대해 GPT로 재판단
+        # 모든 예측에 대해 GPT로 재판단.
         gpt_label = gpt_rejudge_political_orientation(text,media_orientation)
-        final_label = gpt_label
+
+        # 모든 예측에 대해서 kobigbird와 GPT 융합. kobigbird 모델의 결과를 좀더 관용적으로 판단.
+
+        if predicted_label == gpt_label:
+            final_label = gpt_label
+
+        else:
+            if (predicted_label == "보수" and predicted_label == "진보") or (predicted_label == "진보" and predicted_label == "보수"):
+                final_label = "중립"
+            else:
+                final_label = gpt_label        
 
         ############
         #언론사 상관없이 중립으로 나왔으면 통과
